@@ -1,7 +1,7 @@
 ---
 title: "COPE Commonality Analysis"
 author: "Arielle Smith and Laura Jans"
-date: "2023-06-30"
+date: "2023-08-25"
 output: html_document
 ---
 
@@ -21,8 +21,8 @@ if(!require(psych)){install.packages('psych')}
 library(psych)
 
 #Set working directory
-#setwd("/Volumes/jslab/Commonality Analysis") #Arielle
-setwd("Z:/Commonality Analysis") #Laura
+setwd("/Volumes/jslab/Commonality Analysis") #Arielle
+#setwd("Z:/Commonality Analysis") #Laura
 
 #Read in data
 cope_full_data <- readRDS("cleaned_cope_data_randomized.rds")
@@ -36,7 +36,9 @@ cope_ca_data <- cope_full_data %>%
   mutate(b_cdi_sum = b_cdi_1 + b_cdi_2 + b_cdi_3 + b_cdi_4 + b_cdi_5 + b_cdi_6 + b_cdi_7 + b_cdi_8 + b_cdi_9 + b_cdi_10 + b_cdi_11 + b_cdi_12, 
          f1_cdi_sum = f1_cdi_1 + f1_cdi_2 + f1_cdi_3 + f1_cdi_4 + f1_cdi_5 + f1_cdi_6 + f1_cdi_7 + f1_cdi_8 + f1_cdi_9 + f1_cdi_10 + f1_cdi_11 + f1_cdi_12) %>% 
 #Confusing that the program feedback scale was labelled with the abbreviation for baseline rather than post-intervention, so changing it
-  rename_with(~ gsub("^b_pfs", "pi_pfs", .), starts_with("b_pfs"))
+  rename_with(~ gsub("^b_pfs", "pi_pfs", .), starts_with("b_pfs")) %>% 
+#Remove open-ended text variables (for demographics) because will not give missForest meaningful info
+  select(-ends_with("_text"))
 
 #Includes the demographics, predictor variables, outcome variables, and the condition. Condition is just labeled 0, 1, and 2, but looking at the COPE baseline survey flow and parent study code, have gathered that:
 #0 = control (Sharing Feelings)
@@ -53,66 +55,41 @@ cope_ca_data <- cope_ca_data %>%
 #1 = Yes
 
 #Select only the intervention participants who completed their SSI
-cope_ca_data <- cope_ca_data %>% 
+cope_ca_ssi_completers <- cope_ca_data %>% 
   filter(condition == 1 | condition == 2) %>%
   filter(pi_dropout == 0)
 
-#Change numeric-coded and integer-coded categorical variables into factors and make cope_ca_data a data.frame for missForest to work
-cope_ca_data <- as.data.frame(cope_ca_data) %>% 
-  mutate(b_drs_month = factor(b_drs_month),
-    f1_drs_month = factor(f1_drs_month),
-     across(starts_with("b_dem_gender"), factor),
-    across(starts_with("b_dem_sex"), factor),
-    across(starts_with("b_dem_rom"), factor),
-    across(starts_with("b_dem_race"), factor))
+#Remove SSI completers without complete baseline data (we are not imputing these variables)
+cope_ca_ssi_completers <- cope_ca_ssi_completers[complete.cases(cope_ca_ssi_completers$b_cdi_sum,
+                                                           cope_ca_ssi_completers$b_gad_mean,
+                                                          cope_ca_ssi_completers$b_drs_month,
+                                                          cope_ca_ssi_completers$b_cts_rs_mean), ]
+
+#Change numeric-coded and integer-coded categorical variables into factors and make cope_ca_ssi_completers a data.frame for missForest to work
+cope_ca_ssi_completers <- as.data.frame(cope_ca_ssi_completers) %>% 
+mutate(across(c(b_drs_month, f1_drs_month, starts_with(c("b_dem_gender", "b_dem_sex", "b_dem_rom", "b_dem_race"))), factor))
 
 #Since missForest can only work with categorical variables with a maximum of 53 levels, need to lump together factors. Decided to lump those with less than 10 responses.
-str(cope_ca_data)
-cope_ca_data <- cope_ca_data %>%
-  mutate(b_dem_sex = fct_lump_min(b_dem_sex, 10)) 
-cope_ca_data <- cope_ca_data %>%
-  mutate(b_dem_sex_3_text = fct_lump_min(b_dem_sex_3_text, 10)) 
-cope_ca_data <- cope_ca_data %>%
-  mutate(b_dem_gender = fct_lump_min(b_dem_gender, 10)) 
-cope_ca_data <- cope_ca_data %>%
-  mutate(b_dem_gender_16_text = fct_lump_min(b_dem_gender_16_text, 10)) 
-cope_ca_data <- cope_ca_data %>%
-  mutate(b_dem_orientation = fct_lump_min(b_dem_orientation, 10)) 
-cope_ca_data <- cope_ca_data %>%
-  mutate(b_dem_orientation_7_text = fct_lump_min(b_dem_orientation_7_text, 10)) 
-cope_ca_data <- cope_ca_data %>%
-  mutate(b_dem_sex_experience = fct_lump_min(b_dem_sex_experience, 10)) 
-cope_ca_data <- cope_ca_data %>%
-  mutate(b_dem_sex_experience_10_text = fct_lump_min(b_dem_sex_experience_10_text, 10)) 
-cope_ca_data <- cope_ca_data %>%
-  mutate(b_dem_sex_attract = fct_lump_min(b_dem_sex_attract, 10)) 
-cope_ca_data <- cope_ca_data %>%
-  mutate(b_dem_sex_attract_10_text = fct_lump_min(b_dem_sex_attract_10_text, 10)) 
-cope_ca_data <- cope_ca_data %>%
-  mutate(b_dem_rom_attract = fct_lump_min(b_dem_rom_attract, 10)) 
-cope_ca_data <- cope_ca_data %>%
-  mutate(b_dem_rom_attract_10_text = fct_lump_min(b_dem_rom_attract_10_text, 10)) 
-cope_ca_data <- cope_ca_data %>%
-  mutate(b_dem_race = fct_lump_min(b_dem_race, 10)) 
-cope_ca_data <- cope_ca_data %>%
-  mutate(b_dem_race_7_text = fct_lump_min(b_dem_race_7_text, 10)) 
-cope_ca_data <- cope_ca_data %>%
-  mutate(b_dem_language = fct_lump_min(b_dem_language, 10)) 
-cope_ca_data <- cope_ca_data %>%
-  mutate(b_dem_language_10_text = fct_lump_min(b_dem_language_10_text, 10)) 
-cope_ca_data <- cope_ca_data %>%
-  mutate(b_dem_zip_code = fct_lump_min(b_dem_zip_code, 10)) 
-cope_ca_data <- cope_ca_data %>%
-  mutate(b_dem_grade = fct_lump_min(b_dem_grade, 10)) 
-cope_ca_data <- cope_ca_data %>%
-  mutate(b_dem_grade_9_text = fct_lump_min(b_dem_grade_9_text, 10)) 
-str(cope_ca_data)
+str(cope_ca_ssi_completers)
+cope_ca_ssi_completers <- cope_ca_ssi_completers %>%
+  mutate(b_dem_sex = fct_lump_min(b_dem_sex, 10),
+         b_dem_gender = fct_lump_min(b_dem_gender, 10),
+         b_dem_orientation = fct_lump_min(b_dem_orientation, 10),
+         b_dem_sex_experience = fct_lump_min(b_dem_sex_experience, 10),
+         b_dem_sex_attract = fct_lump_min(b_dem_sex_attract, 10),
+         b_dem_rom_attract = fct_lump_min(b_dem_rom_attract, 10), 
+         b_dem_race = fct_lump_min(b_dem_race, 10),
+         b_dem_language = fct_lump_min(b_dem_language, 10),
+         b_dem_zip_code = fct_lump_min(b_dem_zip_code, 10),
+         b_dem_grade = fct_lump_min(b_dem_grade, 10))
+
+str(cope_ca_ssi_completers)
 ```
 
 ```{r data imputation}
 set.seed(12345) #use the same seed number each time to make the code reproducible (the seed number is just the starting point used in the generation of a sequence of random numbers in the random forest)
 
-cope_ca_data_imputed <- missForest(cope_ca_data)
+cope_ca_data_imputed <- missForest(cope_ca_ssi_completers)
 #NRMSE = 0.25. This is the error term for the continuous variables.
 #PFC = 0.04. This is the error term for the categorical variables.
 #We will run the analyses again with complete cases only (no imputation) as a robustness check to make sure there isn't a huge difference in results.
@@ -122,137 +99,26 @@ cope_ca_data_imputed <- missForest(cope_ca_data)
 #Turn the imputed data into it's own object
 cope_ca_data_imputed <- as.data.frame(cope_ca_data_imputed$ximp)
 
-#Select out the imputed data of the variables that we actually want imputed values for, from cope_ca_data_imputed: "pi_bhs", "pi_shs", "f1_bhs", "f1_shs", "f1_cdi", "f1_gad", "f1_cts_rs", "f1_drs_month"
-cope_ca_data_imputed <- cope_ca_data_imputed %>%
-  select(contains(c("pi_bhs", "pi_shs", "f1_bhs", "f1_shs", "f1_cdi", "f1_gad", "f1_cts_rs", "f1_drs_month")))
-  
-#Select out the raw data of the variables that we do not want imputed values for, from cope_ca_data (assuming that lumping factors doesn't cause issues): "b_dem","b_bhs", "b_shs", "b_cdi", "b_gad", "b_cts_rs","b_drs_month", "pi_pfs", "condition", "pi_dropout"
-cope_ca_data_dem_b_pfs_condition_completion <- cope_ca_data %>%
-  select(contains(c("b_dem","b_bhs", "b_shs", "b_cdi", "b_gad", "b_cts_rs","b_drs_month", "pi_pfs", "condition", "pi_dropout")))
-
-#Merge the imputed data with the demographics, baseline, program feedback, condition, and completion variables 
-cope_ca_data_imputed <- cbind(cope_ca_data_imputed, cope_ca_data_dem_b_pfs_condition_completion)
-#1383 observations which is a bit less than the 1385 we expected in the pre-registration
-
 #Since PFS was not imputed but we need PFS completers for the analyses, look for people who skipped one or more PFS item
-missing_pfs <- cope_ca_data_imputed [, c("pi_pfs_1", "pi_pfs_2", "pi_pfs_3", "pi_pfs_4", "pi_pfs_5", "pi_pfs_6", "pi_pfs_7")]
+missing_pfs <- cope_ca_data_imputed[, c("pi_pfs_1", "pi_pfs_2", "pi_pfs_3", "pi_pfs_4", "pi_pfs_5", "pi_pfs_6", "pi_pfs_7")]
 vis_miss(missing_pfs, show_perc_col = T, sort_miss = T)
 miss_var_summary(missing_pfs)
-#Looks like 1 participant (row 782) did not answer item 2, so need to drop them
-cope_ca_data_imputed <- cope_ca_data_imputed[-782, ]
-#Now at #1382 observations
+#Looks like 1 participant did not answer item 2, so need to drop them
+cope_ca_data_imputed <- cope_ca_data_imputed %>%
+  drop_na(starts_with("pi_pfs"))
+#Now at #1379 observations
+
+#Export as .csv
+#write.csv(cope_ca_data_imputed,file='cope_ca_data_imputed.csv')
 ```
 
 ```{r create new data frame of complete cases (nonimputed) - for robustness check later}
 selected_columns <- c("b_bhs", "b_shs", "b_cdi", "b_gad", "b_cts_rs", "b_drs_month", "pi_pfs", "pi_bhs", "pi_shs", "f1_bhs", "f1_shs", "f1_cdi", "f1_gad", "f1_cts_rs", "f1_drs_month")
 
-cope_ca_data_nonimputed <- cope_ca_data %>%
-  filter(complete.cases(across(contains(selected_columns))))
-#880 observations
-```
+cope_ca_data_nonimputed <- cope_ca_ssi_completers %>%
+drop_na(contains(selected_columns))
+#879 observations
 
-```{r PFS correlation matrix}
-#For the imputed dataset
-pfs_imputed <- cope_ca_data_imputed %>%
-  select(pi_pfs_1, pi_pfs_2, pi_pfs_3, pi_pfs_4, pi_pfs_5, pi_pfs_6, pi_pfs_7)
-pfs_imputed_cor <- cor(pfs_imputed)
-pfs_imputed_cor
-pfs_imputed_cor_plot <- corrplot(pfs_imputed_cor)
-
-#For the nonimputed dataset
-pfs_nonimputed <- cope_ca_data_nonimputed %>% 
-  select(pi_pfs_1, pi_pfs_2, pi_pfs_3, pi_pfs_4, pi_pfs_5, pi_pfs_6, pi_pfs_7)
-pfs_nonimputed_cor <- cor(pfs_nonimputed)
-pfs_nonimputed_cor
-pfs_nonimputed_cor_plot <- corrplot(pfs_nonimputed_cor)
-
-#We pre-registered we would use the mean PFS scores in the regression models if correlations between items are >0.7. They are surprisingly <0.7, so it looks like we'll be doing a principal component analysis.
-```
-
-```{r principal component analysis}
-
-#Imputed data
-
-#We probably only want one component, so starting with nfactors = 1
-pca1 <- psych::principal(pfs_imputed, nfactors = 1, rotate = "none", scores = TRUE)
-pca1
-#SS loadings    3.29
-#Proportion Var 0.47
-cope_ca_data_imputed <- cbind(cope_ca_data_imputed, pca1$scores)
-#For some reason, getting multiple PC1 columns but with the same values
-
-#Seeing if more components results in way more variance being explained, so playing with nfactors = 7 (number of PFS items)
-pca2 <- psych::principal(pfs_imputed, nfactors = 7, rotate = "none")
-pca2
-plot(pca2$values, type="b")
-#Inflection point of the scree plot is the second component, so probably does not make sense to have more than one component
-
-cope_ca_data_imputed <- cbind(cope_ca_data_imputed, pca1$scores)
-
-#Nonimputed data
-#We probably only want one component, so starting with nfactors = 1
-pca3 <- psych::principal(pfs_nonimputed, nfactors = 1, rotate = "none")
-pca3
-#SS loadings    3.28
-#Proportion Var 0.47
-cope_ca_data_nonimputed <- cbind(cope_ca_data_nonimputed, pca3$scores) 
-#For some reason, getting multiple PC1 columns but with the same values
-
-#Seeing if more components results in way more variance being explained, so playing with nfactors = 7 (number of PFS items)
-pca4 <- psych::principal(pfs_nonimputed, nfactors = 7, rotate = "none")
-pca4
-plot(pca4$values, type="b")
-#Inflection point of the scree plot is the second component, so probably does not make sense to have more than one component
-```
-
-```{r stuff for Isaac}
-
-cope_ca_data_imputed <- read.csv("cope_ca_data_imputed")
-
-cope_ca_data_nonimputed <- read.csv("cope_ca_data_nonimputed")
-
-#if(!require(stargazer)){install.packages('stargazer')}
-#library(stargazer)
-
-cdi1 <- lm(f1_cdi_sum ~ PC1, data = cope_ca_data_imputed)
-#outcome1_nonimp <- lm(f1_cdi_sum ~ PC1, data = cope_ca_data_nonimputed)
-
-#pca5 <- psych::principal(pfs_imputed, nfactors = 2, rotate = "none")
-#cope_ca_data_imputed <- cbind(cope_ca_data_imputed, pca5$scores) 
-
-cdi2 <- lm(f1_cdi_sum ~ PC1 + PC2, data = cope_ca_data_imputed)
-
-cdi3 <- lm(f1_cdi_sum ~ pi_pfs_1 + pi_pfs_2 + pi_pfs_3 + pi_pfs_4 + pi_pfs_5 + pi_pfs_6 + pi_pfs_7, data = cope_ca_data_imputed)
-
-cdi4 <- lm(f1_cdi_sum ~ pi_pfs_mean, data = cope_ca_data_imputed)
-
-scared1 <- lm(f1_gad_mean ~ PC1, data = cope_ca_data_imputed)
-
-scared2 <- lm(f1_gad_mean ~ PC1 + PC2, data = cope_ca_data_imputed)
-
-scared3 <- lm(f1_gad_mean ~ pi_pfs_1 + pi_pfs_2 + pi_pfs_3 + pi_pfs_4 + pi_pfs_5 + pi_pfs_6 + pi_pfs_7, data = cope_ca_data_imputed)
-
-scared4 <- lm(f1_gad_mean ~ pi_pfs_mean, data = cope_ca_data_imputed)
-
-drs1 <- lm(f1_drs_month ~ PC1, data = cope_ca_data_imputed)
-
-drs2 <- lm(f1_gad_mean ~ PC1 + PC2, data = cope_ca_data_imputed)
-
-drs3 <- lm(f1_gad_mean ~ pi_pfs_1 + pi_pfs_2 + pi_pfs_3 + pi_pfs_4 + pi_pfs_5 + pi_pfs_6 + pi_pfs_7, data = cope_ca_data_imputed)
-
-drs4 <- lm(f1_gad_mean ~ pi_pfs_mean, data = cope_ca_data_imputed)
-
-cts1 <- lm(f1_cts_rs_mean ~ PC1, data = cope_ca_data_imputed)
-
-cts2 <- lm(f1_cts_rs_mean ~ PC1 + PC2, data = cope_ca_data_imputed)
-
-cts3 <- lm(f1_cts_rs_mean ~ pi_pfs_1 + pi_pfs_2 + pi_pfs_3 + pi_pfs_4 + pi_pfs_5 + pi_pfs_6 + pi_pfs_7, data = cope_ca_data_imputed)
-
-cts4 <- lm(f1_cts_rs_mean ~ pi_pfs_mean, data = cope_ca_data_imputed)
-
-stargazer(cdi1, cdi2, cdi3, cdi4, type = "html")
-stargazer(scared1, scared2, scared3, scared4, type = "html")
-stargazer(drs1, drs2, drs3, drs4, type = "html")
-stargazer(cts1, cts2, cts3, cts4, type = "html")
-
+#Export as .csv
+#write.csv(cope_ca_data_nonimputed,file='cope_ca_data_nonimputed.csv')
 ```
