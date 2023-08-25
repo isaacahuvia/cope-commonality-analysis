@@ -40,12 +40,14 @@ library(stargazer)
 
 #Set working directory
 
-setwd("Z:/Commonality Analysis") # Change based on computer mapping
+#setwd("Z:/Commonality Analysis") # Change based on computer mapping
+setwd("/Volumes/jslab/Commonality Analysis") #Arielle
+
 
 #Read in data from data cleaning and pre-processing code (to avoid re-running data prep every time)
 
-cope_ca_data_imputed <- read.csv("cope_ca_data_imputed")
-cope_ca_data_nonimputed <- read.csv("cope_ca_data_nonimputed")
+cope_ca_data_imputed <- read.csv("cope_ca_data_imputed.csv")
+cope_ca_data_nonimputed <- read.csv("cope_ca_data_nonimputed.csv")
 
 ```
 
@@ -54,21 +56,6 @@ cope_ca_data_nonimputed <- read.csv("cope_ca_data_nonimputed")
 ## Dependent Variables
 
 ```{r, results = "asis", include=T, echo = T, message=FALSE, warning=FALSE}
-
-# Filtering cope_ca_data_imputed so that we only retain cases with all of our baseline variables of interest
-# We did this because we were missing baseline variables for a few individuals who completed an intervention (around 2 participants). Baseline variables did not get imputed, so we would not be able to create residual change scores for these cases.
-
-cope_ca_data_imputed <- cope_ca_data_imputed[complete.cases(cope_ca_data_imputed$b_cdi_sum,
-                                                           cope_ca_data_imputed$b_gad_mean,
-                                                           cope_ca_data_imputed$b_drs_month,
-                                                           cope_ca_data_imputed$b_cts_rs_mean), ]
-
-# Filtering cope_ca_data_nonimputed
-
-cope_ca_data_nonimputed <- cope_ca_data_nonimputed[complete.cases(cope_ca_data_nonimputed$b_cdi_sum,
-                                                                 cope_ca_data_nonimputed$b_gad_mean,
-                                                                 cope_ca_data_nonimputed$b_drs_month,
-                                                                 cope_ca_data_nonimputed$b_cts_rs_mean), ]
 
 # Creating residual change scores for depression (pre-SSI to 3M) in both the imputed and non-imputed datasets
 
@@ -142,44 +129,44 @@ cope_ca_data_nonimputed_ABC <- subset(cope_ca_data_nonimputed, condition == 2)
 
 # Project Personality, Imputed
 
-depression_PP_imputed <- lm(residual_change_depression ~ residual_change_hopelessness + residual_change_agency + PC1, data = cope_ca_data_imputed_PP)
+depression_PP_imputed <- lm(residual_change_depression ~ residual_change_hopelessness + residual_change_agency + pi_pfs_mean, data = cope_ca_data_imputed_PP)
 summary(depression_PP_imputed)
 
 #ignore next two models, just changing name due to stargazer error
-dep_PP_imputed <- lm(residual_change_depression ~ residual_change_hopelessness + residual_change_agency + PC1, data = cope_ca_data_imputed_PP)
+dep_PP_imputed <- lm(residual_change_depression ~ residual_change_hopelessness + residual_change_agency + pi_pfs_mean, data = cope_ca_data_imputed_PP)
 
-anx_PP_imputed <- lm(residual_change_anxiety ~ residual_change_hopelessness + residual_change_agency + PC1, data = cope_ca_data_imputed_PP)
+anx_PP_imputed <- lm(residual_change_anxiety ~ residual_change_hopelessness + residual_change_agency + pi_pfs_mean, data = cope_ca_data_imputed_PP)
 
 ##
 
-anxiety_PP_imputed <- lm(residual_change_anxiety ~ residual_change_hopelessness + residual_change_agency + PC1, data = cope_ca_data_imputed_PP)
+anxiety_PP_imputed <- lm(residual_change_anxiety ~ residual_change_hopelessness + residual_change_agency + pi_pfs_mean, data = cope_ca_data_imputed_PP)
 summary(anxiety_PP_imputed)
 
-drs_PP_imputed <- lm(residual_change_drs ~ residual_change_hopelessness + residual_change_agency + PC1, data = cope_ca_data_imputed_PP)
+drs_PP_imputed <- lm(residual_change_drs ~ residual_change_hopelessness + residual_change_agency + pi_pfs_mean, data = cope_ca_data_imputed_PP)
 summary(drs_PP_imputed)
 
-cts_PP_imputed <- lm(residual_change_cts ~ residual_change_hopelessness + residual_change_agency + PC1, data = cope_ca_data_imputed_PP)
+cts_PP_imputed <- lm(residual_change_cts ~ residual_change_hopelessness + residual_change_agency + pi_pfs_mean, data = cope_ca_data_imputed_PP)
 summary(cts_PP_imputed)
 
 # ABC Project, Imputed
 
-depression_ABC_imputed <- lm(residual_change_depression ~ residual_change_hopelessness + residual_change_agency + PC1, data = cope_ca_data_imputed_ABC)
+depression_ABC_imputed <- lm(residual_change_depression ~ residual_change_hopelessness + residual_change_agency + pi_pfs_mean, data = cope_ca_data_imputed_ABC)
 summary(depression_ABC_imputed)
 
 #ignore next two models, just changing name due to stargazer error
-dep_ABC_imputed <- lm(residual_change_depression ~ residual_change_hopelessness + residual_change_agency + PC1, data = cope_ca_data_imputed_ABC)
+dep_ABC_imputed <- lm(residual_change_depression ~ residual_change_hopelessness + residual_change_agency + pi_pfs_mean, data = cope_ca_data_imputed_ABC)
 
-anx_ABC_imputed <- lm(residual_change_anxiety ~ residual_change_hopelessness + residual_change_agency + PC1, data = cope_ca_data_imputed_ABC)
+anx_ABC_imputed <- lm(residual_change_anxiety ~ residual_change_hopelessness + residual_change_agency + pi_pfs_mean, data = cope_ca_data_imputed_ABC)
 
 ##
 
-anxiety_ABC_imputed <- lm(residual_change_anxiety ~ residual_change_hopelessness + residual_change_agency + PC1, data = cope_ca_data_imputed_ABC)
+anxiety_ABC_imputed <- lm(residual_change_anxiety ~ residual_change_hopelessness + residual_change_agency + pi_pfs_mean, data = cope_ca_data_imputed_ABC)
 summary(anxiety_ABC_imputed)
 
-drs_ABC_imputed <- lm(residual_change_drs ~ residual_change_hopelessness + residual_change_agency + PC1, data = cope_ca_data_imputed_ABC)
+drs_ABC_imputed <- lm(residual_change_drs ~ residual_change_hopelessness + residual_change_agency + pi_pfs_mean, data = cope_ca_data_imputed_ABC)
 summary(drs_ABC_imputed)
 
-cts_ABC_imputed <- lm(residual_change_cts ~ residual_change_hopelessness + residual_change_agency + PC1, data = cope_ca_data_imputed_ABC)
+cts_ABC_imputed <- lm(residual_change_cts ~ residual_change_hopelessness + residual_change_agency + pi_pfs_mean, data = cope_ca_data_imputed_ABC)
 summary(cts_ABC_imputed)
 
 ## html-friendly regressions ##
