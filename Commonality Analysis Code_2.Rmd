@@ -49,6 +49,7 @@ setwd("/Volumes/jslab/Commonality Analysis") #Arielle
 cope_ca_data_imputed <- read.csv("cope_ca_data_imputed.csv")
 cope_ca_data_nonimputed <- read.csv("cope_ca_data_nonimputed.csv")
 
+set.seed(6804275)
 ```
 
 # Creating Residual Change Scores

@@ -47,41 +47,28 @@ cope_ca_data <- cope_full_data %>%
 
 #Make a new variable to indicate SSI completion - same method as code from parent project:
 cope_ca_data <- cope_ca_data %>% 
-  mutate(pi_dropout = case_when(
-    is.na(pi_pfs_1) ~ 1,
-    TRUE ~ 0))
+  mutate(pi_dropout = is.na(pi_pfs_1))
 #pi_dropout stands for post-intervention dropout
-#0 = No
-#1 = Yes
 
 #Select only the intervention participants who completed their SSI
 cope_ca_ssi_completers <- cope_ca_data %>% 
-  filter(condition == 1 | condition == 2) %>%
-  filter(pi_dropout == 0)
+  filter(condition == 1 | condition == 2,
+         pi_dropout == 0)
 
 #Remove SSI completers without complete baseline data (we are not imputing these variables)
-cope_ca_ssi_completers <- cope_ca_ssi_completers[complete.cases(cope_ca_ssi_completers$b_cdi_sum,
-                                                           cope_ca_ssi_completers$b_gad_mean,
-                                                          cope_ca_ssi_completers$b_drs_month,
-                                                          cope_ca_ssi_completers$b_cts_rs_mean), ]
+cope_ca_ssi_completers <- cope_ca_ssi_completers %>%
+  drop_na(b_cdi_sum, b_gad_mean, b_drs_month, b_cts_rs_mean)
 
 #Change numeric-coded and integer-coded categorical variables into factors and make cope_ca_ssi_completers a data.frame for missForest to work
 cope_ca_ssi_completers <- as.data.frame(cope_ca_ssi_completers) %>% 
-mutate(across(c(b_drs_month, f1_drs_month, starts_with(c("b_dem_gender", "b_dem_sex", "b_dem_rom", "b_dem_race"))), factor))
+  mutate(across(c(pi_dropout, b_drs_month, f1_drs_month, starts_with(c("b_dem_gender", "b_dem_sex", "b_dem_rom", "b_dem_race"))), factor))
 
 #Since missForest can only work with categorical variables with a maximum of 53 levels, need to lump together factors. Decided to lump those with less than 10 responses.
 str(cope_ca_ssi_completers)
+
 cope_ca_ssi_completers <- cope_ca_ssi_completers %>%
-  mutate(b_dem_sex = fct_lump_min(b_dem_sex, 10),
-         b_dem_gender = fct_lump_min(b_dem_gender, 10),
-         b_dem_orientation = fct_lump_min(b_dem_orientation, 10),
-         b_dem_sex_experience = fct_lump_min(b_dem_sex_experience, 10),
-         b_dem_sex_attract = fct_lump_min(b_dem_sex_attract, 10),
-         b_dem_rom_attract = fct_lump_min(b_dem_rom_attract, 10), 
-         b_dem_race = fct_lump_min(b_dem_race, 10),
-         b_dem_language = fct_lump_min(b_dem_language, 10),
-         b_dem_zip_code = fct_lump_min(b_dem_zip_code, 10),
-         b_dem_grade = fct_lump_min(b_dem_grade, 10))
+  mutate(across(starts_with("b_dem"),
+                ~ fct_lump_min(., 10)))
 
 str(cope_ca_ssi_completers)
 ```
@@ -116,7 +103,7 @@ cope_ca_data_imputed <- cope_ca_data_imputed %>%
 selected_columns <- c("b_bhs", "b_shs", "b_cdi", "b_gad", "b_cts_rs", "b_drs_month", "pi_pfs", "pi_bhs", "pi_shs", "f1_bhs", "f1_shs", "f1_cdi", "f1_gad", "f1_cts_rs", "f1_drs_month")
 
 cope_ca_data_nonimputed <- cope_ca_ssi_completers %>%
-drop_na(contains(selected_columns))
+  drop_na(contains(selected_columns))
 #879 observations
 
 #Export as .csv
