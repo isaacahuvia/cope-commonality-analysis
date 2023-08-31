@@ -1,0 +1,361 @@
+---
+title: "Commonality Analysis Code_2"
+author: "Laura Jans and Arielle Smith"
+date: "2023-07-25"
+output: html_document
+---
+
+# Loading Cleaned Data
+
+```{r setup, echo=TRUE, message=FALSE, warning=FALSE}
+
+#Load required packages
+
+if(!require(tidyverse)){install.packages('tidyverse')}
+library(tidyverse)
+
+if(!require(psych)){install.packages('psych')}
+library(psych)
+
+if(!require(Hmisc)){install.packages('Hmisc')}
+library(Hmisc)
+
+if(!require(yhat)){install.packages('yhat')}
+library(yhat)
+
+if(!require(boot)){install.packages('boot')}
+library(boot)
+
+if(!require(VennDiagram)){install.packages('VennDiagram')}
+library(VennDiagram)
+
+if(!require(gsheet)){install.packages('gsheet')}
+library('gsheet')
+
+if(!require(ggrepel)){install.packages('ggrepel')}
+library('ggrepel')
+
+if(!require(stargazer)){install.packages('stargazer')}
+library(stargazer)
+
+#Set working directory
+
+#setwd("Z:/Commonality Analysis") # Change based on computer mapping
+setwd("/Volumes/jslab/Commonality Analysis") #Arielle
+
+
+#Read in data from data cleaning and pre-processing code (to avoid re-running data prep every time)
+
+cope_ca_data_imputed <- read.csv("cope_ca_data_imputed.csv")
+cope_ca_data_nonimputed <- read.csv("cope_ca_data_nonimputed.csv")
+
+set.seed(6804275)
+```
+
+# Creating Residual Change Scores
+
+## Dependent Variables
+
+```{r, results = "asis", include=T, echo = T, message=FALSE, warning=FALSE}
+
+# Creating residual change scores for depression (pre-SSI to 3M) in both the imputed and non-imputed datasets
+
+res_model_depression_imputed <- lm(f1_cdi_sum ~ b_cdi_sum, data = cope_ca_data_imputed)
+cope_ca_data_imputed$residual_change_depression <- res_model_depression_imputed$residuals
+
+res_model_depression_nonimputed <- lm(f1_cdi_mean ~ b_cdi_mean, data = cope_ca_data_nonimputed)
+cope_ca_data_nonimputed$residual_change_depression <- res_model_depression_nonimputed$residuals
+
+# Creating residual change scores for anxiety (pre-SSI to 3M) in both the imputed and non-imputed datasets
+
+res_model_anxiety_imputed <- lm(f1_gad_mean ~ b_gad_mean, data = cope_ca_data_imputed)
+cope_ca_data_imputed$residual_change_anxiety <- res_model_anxiety_imputed$residuals
+
+res_model_anxiety_nonimputed <- lm(f1_gad_mean ~ b_gad_mean, data = cope_ca_data_nonimputed)
+cope_ca_data_nonimputed$residual_change_anxiety <- res_model_anxiety_nonimputed$residuals
+
+# Creating residual change scores for restrictive eating (pre-SSI to 3M) in both the imputed and non-imputed datasets
+
+res_model_drs_imputed <- lm(f1_drs_month ~ b_drs_month, data = cope_ca_data_imputed)
+cope_ca_data_imputed$residual_change_drs <- res_model_drs_imputed$residuals
+
+res_model_drs_nonimputed <- lm(f1_drs_month ~ b_drs_month, data = cope_ca_data_nonimputed)
+cope_ca_data_nonimputed$residual_change_drs <- res_model_drs_nonimputed$residuals
+
+# Creating residual change scores for COVID-19 trauma (pre-SSI to 3M) in both the imputed and non-imputed datasets
+
+res_model_cts_imputed <- lm(f1_cts_rs_mean ~ b_cts_rs_mean, data = cope_ca_data_imputed)
+cope_ca_data_imputed$residual_change_cts <- res_model_cts_imputed$residuals
+
+res_model_cts_nonimputed <- lm(f1_cts_rs_mean ~ b_cts_rs_mean, data = cope_ca_data_nonimputed)
+cope_ca_data_nonimputed$residual_change_cts <- res_model_cts_nonimputed$residuals
+
+```
+
+## Independent Variables
+
+```{r, results = "asis", include=T, echo = T, message=FALSE, warning=FALSE}
+
+# Creating residual change scores for hopelessness (pre-SSI to post-SSI) in both the imputed and non-imputed datasets
+
+res_model_hopelessness_imputed <- lm(pi_bhs_mean ~ b_bhs_mean, data = cope_ca_data_imputed)
+cope_ca_data_imputed$residual_change_hopelessness <- res_model_hopelessness_imputed$residuals
+
+res_model_hopelessness_nonimputed <- lm(pi_bhs_mean ~ b_bhs_mean, data = cope_ca_data_nonimputed)
+cope_ca_data_nonimputed$residual_change_hopelessness <- res_model_hopelessness_nonimputed$residuals
+
+# Creating residual change scores for agency (pre-SSI to post-SSI) in both the imputed and non-imputed datasets
+
+res_model_agency_imputed <- lm(pi_shs_mean ~ b_shs_mean, data = cope_ca_data_imputed)
+cope_ca_data_imputed$residual_change_agency <- res_model_agency_imputed$residuals
+
+res_model_agency_nonimputed <- lm(pi_shs_mean ~ b_shs_mean, data = cope_ca_data_nonimputed)
+cope_ca_data_nonimputed$residual_change_agency <- res_model_agency_nonimputed$residuals
+
+```
+
+# Running Regressions 
+
+```{r, results = "asis", include=T, echo = T, message=FALSE, warning=FALSE}
+
+# Subset data based on condition
+
+cope_ca_data_imputed_PP <- subset(cope_ca_data_imputed, condition == 1)
+cope_ca_data_imputed_ABC <- subset(cope_ca_data_imputed, condition == 2)
+
+cope_ca_data_nonimputed_PP <- subset(cope_ca_data_nonimputed, condition == 1)
+cope_ca_data_nonimputed_ABC <- subset(cope_ca_data_nonimputed, condition == 2)
+
+# Run main regressions
+
+# Project Personality, Imputed
+
+depression_PP_imputed <- lm(residual_change_depression ~ residual_change_hopelessness + residual_change_agency + pi_pfs_mean, data = cope_ca_data_imputed_PP)
+summary(depression_PP_imputed)
+
+#ignore next two models, just changing name due to stargazer error
+dep_PP_imputed <- lm(residual_change_depression ~ residual_change_hopelessness + residual_change_agency + pi_pfs_mean, data = cope_ca_data_imputed_PP)
+
+anx_PP_imputed <- lm(residual_change_anxiety ~ residual_change_hopelessness + residual_change_agency + pi_pfs_mean, data = cope_ca_data_imputed_PP)
+
+##
+
+anxiety_PP_imputed <- lm(residual_change_anxiety ~ residual_change_hopelessness + residual_change_agency + pi_pfs_mean, data = cope_ca_data_imputed_PP)
+summary(anxiety_PP_imputed)
+
+drs_PP_imputed <- lm(residual_change_drs ~ residual_change_hopelessness + residual_change_agency + pi_pfs_mean, data = cope_ca_data_imputed_PP)
+summary(drs_PP_imputed)
+
+cts_PP_imputed <- lm(residual_change_cts ~ residual_change_hopelessness + residual_change_agency + pi_pfs_mean, data = cope_ca_data_imputed_PP)
+summary(cts_PP_imputed)
+
+# ABC Project, Imputed
+
+depression_ABC_imputed <- lm(residual_change_depression ~ residual_change_hopelessness + residual_change_agency + pi_pfs_mean, data = cope_ca_data_imputed_ABC)
+summary(depression_ABC_imputed)
+
+#ignore next two models, just changing name due to stargazer error
+dep_ABC_imputed <- lm(residual_change_depression ~ residual_change_hopelessness + residual_change_agency + pi_pfs_mean, data = cope_ca_data_imputed_ABC)
+
+anx_ABC_imputed <- lm(residual_change_anxiety ~ residual_change_hopelessness + residual_change_agency + pi_pfs_mean, data = cope_ca_data_imputed_ABC)
+
+##
+
+anxiety_ABC_imputed <- lm(residual_change_anxiety ~ residual_change_hopelessness + residual_change_agency + pi_pfs_mean, data = cope_ca_data_imputed_ABC)
+summary(anxiety_ABC_imputed)
+
+drs_ABC_imputed <- lm(residual_change_drs ~ residual_change_hopelessness + residual_change_agency + pi_pfs_mean, data = cope_ca_data_imputed_ABC)
+summary(drs_ABC_imputed)
+
+cts_ABC_imputed <- lm(residual_change_cts ~ residual_change_hopelessness + residual_change_agency + pi_pfs_mean, data = cope_ca_data_imputed_ABC)
+summary(cts_ABC_imputed)
+
+## html-friendly regressions ##
+
+# Project Personality
+stargazer(dep_PP_imputed, anx_PP_imputed, drs_PP_imputed, cts_PP_imputed, type = "html")
+
+# Project ABC
+stargazer(dep_ABC_imputed, anx_ABC_imputed, drs_ABC_imputed, cts_ABC_imputed, type = "html")
+
+```
+Note: PC1 represents component scores (kind of like weighted averages for each individual) for the program feedback scale.
+
+# Commonality Analysis
+
+```{r, results = "asis", include=T, echo = T, message=FALSE, warning=FALSE}
+
+# First, let's look at the r^2 for each model
+
+summary(depression_PP_imputed)$r.squared
+summary(anxiety_PP_imputed)$r.squared
+summary(drs_PP_imputed)$r.squared
+summary(cts_PP_imputed)$r.squared
+summary(depression_ABC_imputed)$r.squared
+summary(anxiety_ABC_imputed)$r.squared
+summary(drs_ABC_imputed)$r.squared
+summary(cts_ABC_imputed)$r.squared
+
+# Decompose r^2 # Let's just try this once for the model predicting follow-up depression symptoms for Project Personality 
+
+regOut_dep_PP <- calc.yhat(depression_PP_imputed)
+regOut_dep_PP$APSRelatedMetrics
+
+# Bootstrap 1000 times to get CIs
+
+boot.regOut_dep_PP <-boot(cope_ca_data_imputed_PP, boot.yhat, 1000, lmOut = depression_PP_imputed, regrout0 = regOut_dep_PP)
+boot.regOut_dep_PP_result <- booteval.yhat(regOut_dep_PP, boot.regOut_dep_PP, bty="perc")
+boot.regOut_dep_PP_result$combCIaps
+
+# Divide unique effects of hopelessness, agency, and PFS (the commonality coefficients) by R^2 of the model to get on a scale out of 100%.  We only need to do this for the confidence intervals.  We already have the main % total numbers from the previous step.
+
+# % Total
+regOut_dep_PP$APSRelatedMetrics$` % Total`[1:3]
+
+# Lower CIs (in %)
+boot.regOut_dep_PP_result$lowerCIaps$Commonality[1:3] / summary(depression_PP_imputed)$r.squared
+
+# Upper CIs (in %)
+boot.regOut_dep_PP_result$upperCIaps$Commonality[1:3] / summary(depression_PP_imputed)$r.squared
+
+# Project Personality, Anxiety
+
+regOut_anx_PP <- calc.yhat(anxiety_PP_imputed)
+regOut_anx_PP$APSRelatedMetrics
+
+boot.regOut_anx_PP <-boot(cope_ca_data_imputed_PP, boot.yhat, 1000, lmOut = anxiety_PP_imputed, regrout0 = regOut_anx_PP)
+boot.regOut_anx_PP_result <- booteval.yhat(regOut_anx_PP, boot.regOut_anx_PP, bty="perc")
+boot.regOut_anx_PP_result$combCIaps
+
+regOut_anx_PP$APSRelatedMetrics$` % Total`[1:3]
+boot.regOut_anx_PP_result$lowerCIaps$Commonality[1:3] / summary(anxiety_PP_imputed)$r.squared
+boot.regOut_anx_PP_result$upperCIaps$Commonality[1:3] / summary(anxiety_PP_imputed)$r.squared
+
+# Project Personality, Restrictive Eating
+
+regOut_drs_PP <- calc.yhat(drs_PP_imputed)
+regOut_drs_PP$APSRelatedMetrics
+
+boot.regOut_drs_PP <-boot(cope_ca_data_imputed_PP, boot.yhat, 1000, lmOut = drs_PP_imputed, regrout0 = regOut_drs_PP)
+boot.regOut_drs_PP_result <- booteval.yhat(regOut_drs_PP, boot.regOut_drs_PP, bty="perc")
+boot.regOut_drs_PP_result$combCIaps
+
+regOut_drs_PP$APSRelatedMetrics$` % Total`[1:3]
+boot.regOut_drs_PP_result$lowerCIaps$Commonality[1:3] / summary(drs_PP_imputed)$r.squared
+boot.regOut_drs_PP_result$upperCIaps$Commonality[1:3] / summary(drs_PP_imputed)$r.squared
+
+# Project Personality, COVID-19 Trauma
+
+regOut_cts_PP <- calc.yhat(cts_PP_imputed)
+regOut_cts_PP$APSRelatedMetrics
+
+boot.regOut_cts_PP <-boot(cope_ca_data_imputed_PP, boot.yhat, 1000, lmOut = cts_PP_imputed, regrout0 = regOut_cts_PP)
+boot.regOut_cts_PP_result <- booteval.yhat(regOut_cts_PP, boot.regOut_cts_PP, bty="perc")
+boot.regOut_cts_PP_result$combCIaps
+
+regOut_cts_PP$APSRelatedMetrics$` % Total`[1:3]
+boot.regOut_cts_PP_result$lowerCIaps$Commonality[1:3] / summary(cts_PP_imputed)$r.squared
+boot.regOut_cts_PP_result$upperCIaps$Commonality[1:3] / summary(cts_PP_imputed)$r.squared
+
+# Project ABC, Depression
+
+regOut_dep_ABC <- calc.yhat(depression_ABC_imputed)
+regOut_dep_ABC$APSRelatedMetrics
+
+boot.regOut_dep_ABC <- boot(cope_ca_data_imputed_ABC, boot.yhat, 1000, lmOut = depression_ABC_imputed, regrout0 = regOut_dep_ABC)
+boot.regOut_dep_ABC_result <- booteval.yhat(regOut_dep_ABC, boot.regOut_dep_ABC, bty = "perc")
+boot.regOut_dep_ABC_result$combCIaps
+
+regOut_dep_ABC$APSRelatedMetrics$` % Total`[1:3]
+boot.regOut_dep_ABC_result$lowerCIaps$Commonality[1:3] / summary(depression_ABC_imputed)$r.squared
+boot.regOut_dep_ABC_result$upperCIaps$Commonality[1:3] / summary(depression_ABC_imputed)$r.squared
+
+# Project ABC, Anxiety
+
+regOut_anx_ABC <- calc.yhat(anxiety_ABC_imputed)
+regOut_anx_ABC$APSRelatedMetrics
+
+boot.regOut_anx_ABC <- boot(cope_ca_data_imputed_ABC, boot.yhat, 1000, lmOut = anxiety_ABC_imputed, regrout0 = regOut_anx_ABC)
+boot.regOut_anx_ABC_result <- booteval.yhat(regOut_anx_ABC, boot.regOut_anx_ABC, bty = "perc")
+boot.regOut_anx_ABC_result$combCIaps
+
+regOut_anx_ABC$APSRelatedMetrics$` % Total`[1:3]
+boot.regOut_anx_ABC_result$lowerCIaps$Commonality[1:3] / summary(anxiety_ABC_imputed)$r.squared
+boot.regOut_anx_ABC_result$upperCIaps$Commonality[1:3] / summary(anxiety_ABC_imputed)$r.squared
+
+# Project ABC, Restrictive Eating
+
+regOut_drs_ABC <- calc.yhat(drs_ABC_imputed)
+regOut_drs_ABC$APSRelatedMetrics
+
+boot.regOut_drs_ABC <- boot(cope_ca_data_imputed_ABC, boot.yhat, 1000, lmOut = drs_ABC_imputed, regrout0 = regOut_drs_ABC)
+boot.regOut_drs_ABC_result <- booteval.yhat(regOut_drs_ABC, boot.regOut_drs_ABC, bty = "perc")
+boot.regOut_drs_ABC_result$combCIaps
+
+regOut_drs_ABC$APSRelatedMetrics$` % Total`[1:3]
+boot.regOut_drs_ABC_result$lowerCIaps$Commonality[1:3] / summary(drs_ABC_imputed)$r.squared
+boot.regOut_drs_ABC_result$upperCIaps$Commonality[1:3] / summary(drs_ABC_imputed)$r.squared
+
+# Project ABC, COVID-19 Trauma
+
+regOut_cts_ABC <- calc.yhat(cts_ABC_imputed)
+regOut_cts_ABC$APSRelatedMetrics
+
+boot.regOut_cts_ABC <- boot(cope_ca_data_imputed_ABC, boot.yhat, 1000, lmOut = cts_ABC_imputed, regrout0 = regOut_cts_ABC)
+boot.regOut_cts_ABC_result <- booteval.yhat(regOut_cts_ABC, boot.regOut_cts_ABC, bty = "perc")
+boot.regOut_cts_ABC_result$combCIaps
+
+regOut_cts_ABC$APSRelatedMetrics$` % Total`[1:3]
+boot.regOut_cts_ABC_result$lowerCIaps$Commonality[1:3] / summary(cts_ABC_imputed)$r.squared
+boot.regOut_cts_ABC_result$upperCIaps$Commonality[1:3] / summary(cts_ABC_imputed)$r.squared
+
+```
+
+# Visualizing
+
+```{r, results = "asis", include=T, echo = T, message=FALSE, warning=FALSE}
+
+# I manually transferred data to this Google sheet as a simple way to get everything into one dataframe for visualizing # double checked
+
+ca_df_for_visual <- gsheet2tbl('https://docs.google.com/spreadsheets/d/1t5FWK7YcD7lXuHJMf6B4tesynoLpL-rWt6GFE814v70/edit#gid=0')
+
+# Taking an initial look at the data
+
+plot_1 <- ggplot(ca_df_for_visual, aes(x = proximal_predictor, y = absolute_unique_variance, color = condition)) +
+  geom_point(position = position_dodge(.9)) +
+  geom_errorbar(aes(ymin = lower_CI, ymax = upper_CI), size = 0.5, width = 0.25, position = position_dodge(.9)) +
+  geom_text(aes(label = round(absolute_unique_variance, 2), y = upper_CI + .7), vjust = 0, size = 3, position = position_dodge(width = 0.9)) +
+  facet_wrap(~ symptom) +
+  coord_flip() +
+  theme_bw()
+
+print(plot_1)
+
+# Let's make this a little easier to look at.  Below, I multiplied each value by 100 (to make it look more intuitively like a percent), capped the upper CIs at 100, and re-named the axes.
+
+ca_df_for_visual_2 <- ca_df_for_visual %>%
+  mutate(
+    absolute_unique_variance = absolute_unique_variance * 100,
+    lower_CI = lower_CI * 100,
+    upper_CI = upper_CI * 100
+  )
+
+ca_df_for_visual_3 <- ca_df_for_visual_2 %>%
+  mutate(
+    upper_CI = pmin(upper_CI, 100)
+  )
+
+plot_2 <- ggplot(ca_df_for_visual_3, aes(x = proximal_predictor, y = absolute_unique_variance, color = condition)) +
+  geom_point(position = position_dodge(.9)) +
+  geom_errorbar(aes(ymin = lower_CI, ymax = upper_CI), size = 0.5, width = 0.25, position = position_dodge(.9)) +
+  geom_text(aes(label = round(absolute_unique_variance, 2), y = absolute_unique_variance + .7), vjust = -1.0, size = 3, position = position_dodge(width = .9)) +
+  facet_wrap(~ symptom) +
+  coord_flip() +
+  theme_bw() +
+  xlab("Proximal Predictor") +
+  ylab("Absolute Unique Variance (%)") +
+  scale_y_continuous(limits = c(0, 105))
+
+print(plot_2)
+
+```
