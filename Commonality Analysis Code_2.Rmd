@@ -205,18 +205,12 @@ regOut_dep_PP$APSRelatedMetrics
 
 boot.regOut_dep_PP <-boot(cope_ca_data_imputed_PP, boot.yhat, 1000, lmOut = depression_PP_imputed, regrout0 = regOut_dep_PP)
 boot.regOut_dep_PP_result <- booteval.yhat(regOut_dep_PP, boot.regOut_dep_PP, bty="perc")
-boot.regOut_dep_PP_result$combCIaps
 
-# Divide unique effects of hopelessness, agency, and PFS (the commonality coefficients) by R^2 of the model to get on a scale out of 100%.  We only need to do this for the confidence intervals.  We already have the main % total numbers from the previous step.
+#Total r^2 and CI outputs
+boot.regOut_dep_PP_result$combCIaps$R2[1:3]
 
-# % Total
-regOut_dep_PP$APSRelatedMetrics$` % Total`[1:3]
-
-# Lower CIs (in %)
-boot.regOut_dep_PP_result$lowerCIaps$Commonality[1:3] / summary(depression_PP_imputed)$r.squared
-
-# Upper CIs (in %)
-boot.regOut_dep_PP_result$upperCIaps$Commonality[1:3] / summary(depression_PP_imputed)$r.squared
+#Unique r^2 and CI outputs
+boot.regOut_dep_PP_result$combCIaps$Commonality[1:3]
 
 # Project Personality, Anxiety
 
