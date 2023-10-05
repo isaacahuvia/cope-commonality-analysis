@@ -206,11 +206,10 @@ regOut_dep_PP$APSRelatedMetrics
 boot.regOut_dep_PP <-boot(cope_ca_data_imputed_PP, boot.yhat, 1000, lmOut = depression_PP_imputed, regrout0 = regOut_dep_PP)
 boot.regOut_dep_PP_result <- booteval.yhat(regOut_dep_PP, boot.regOut_dep_PP, bty="perc")
 
-#Total r^2 and CI outputs
-boot.regOut_dep_PP_result$combCIaps$R2[1:3]
-
-#Unique r^2 and CI outputs
-boot.regOut_dep_PP_result$combCIaps$Commonality[1:3]
+boot.regOut_dep_PP_result$combCIaps %>%
+  as_tibble(rownames = "IV") %>%
+  filter(IV %in% c("residual_change_hopelessness", "residual_change_agency", "pi_pfs_mean")) %>%
+  select(IV, R2, Commonality)
 
 # Project Personality, Anxiety
 
@@ -219,11 +218,11 @@ regOut_anx_PP$APSRelatedMetrics
 
 boot.regOut_anx_PP <-boot(cope_ca_data_imputed_PP, boot.yhat, 1000, lmOut = anxiety_PP_imputed, regrout0 = regOut_anx_PP)
 boot.regOut_anx_PP_result <- booteval.yhat(regOut_anx_PP, boot.regOut_anx_PP, bty="perc")
-boot.regOut_anx_PP_result$combCIaps
 
-regOut_anx_PP$APSRelatedMetrics$` % Total`[1:3]
-boot.regOut_anx_PP_result$lowerCIaps$Commonality[1:3] / summary(anxiety_PP_imputed)$r.squared
-boot.regOut_anx_PP_result$upperCIaps$Commonality[1:3] / summary(anxiety_PP_imputed)$r.squared
+boot.regOut_anx_PP_result$combCIaps %>%
+  as_tibble(rownames = "IV") %>%
+  filter(IV %in% c("residual_change_hopelessness", "residual_change_agency", "pi_pfs_mean")) %>%
+  select(IV, R2, Commonality)
 
 # Project Personality, Restrictive Eating
 
@@ -232,11 +231,11 @@ regOut_drs_PP$APSRelatedMetrics
 
 boot.regOut_drs_PP <-boot(cope_ca_data_imputed_PP, boot.yhat, 1000, lmOut = drs_PP_imputed, regrout0 = regOut_drs_PP)
 boot.regOut_drs_PP_result <- booteval.yhat(regOut_drs_PP, boot.regOut_drs_PP, bty="perc")
-boot.regOut_drs_PP_result$combCIaps
 
-regOut_drs_PP$APSRelatedMetrics$` % Total`[1:3]
-boot.regOut_drs_PP_result$lowerCIaps$Commonality[1:3] / summary(drs_PP_imputed)$r.squared
-boot.regOut_drs_PP_result$upperCIaps$Commonality[1:3] / summary(drs_PP_imputed)$r.squared
+boot.regOut_drs_PP_result$combCIaps %>%
+  as_tibble(rownames = "IV") %>%
+  filter(IV %in% c("residual_change_hopelessness", "residual_change_agency", "pi_pfs_mean")) %>%
+  select(IV, R2, Commonality)
 
 # Project Personality, COVID-19 Trauma
 
@@ -245,11 +244,11 @@ regOut_cts_PP$APSRelatedMetrics
 
 boot.regOut_cts_PP <-boot(cope_ca_data_imputed_PP, boot.yhat, 1000, lmOut = cts_PP_imputed, regrout0 = regOut_cts_PP)
 boot.regOut_cts_PP_result <- booteval.yhat(regOut_cts_PP, boot.regOut_cts_PP, bty="perc")
-boot.regOut_cts_PP_result$combCIaps
 
-regOut_cts_PP$APSRelatedMetrics$` % Total`[1:3]
-boot.regOut_cts_PP_result$lowerCIaps$Commonality[1:3] / summary(cts_PP_imputed)$r.squared
-boot.regOut_cts_PP_result$upperCIaps$Commonality[1:3] / summary(cts_PP_imputed)$r.squared
+boot.regOut_cts_PP_result$combCIaps %>% 
+  as_tibble(rownames = "IV") %>%
+  filter(IV %in% c("residual_change_hopelessness", "residual_change_agency", "pi_pfs_mean")) %>%
+  select(IV, R2, Commonality)
 
 # Project ABC, Depression
 
@@ -258,11 +257,11 @@ regOut_dep_ABC$APSRelatedMetrics
 
 boot.regOut_dep_ABC <- boot(cope_ca_data_imputed_ABC, boot.yhat, 1000, lmOut = depression_ABC_imputed, regrout0 = regOut_dep_ABC)
 boot.regOut_dep_ABC_result <- booteval.yhat(regOut_dep_ABC, boot.regOut_dep_ABC, bty = "perc")
-boot.regOut_dep_ABC_result$combCIaps
 
-regOut_dep_ABC$APSRelatedMetrics$` % Total`[1:3]
-boot.regOut_dep_ABC_result$lowerCIaps$Commonality[1:3] / summary(depression_ABC_imputed)$r.squared
-boot.regOut_dep_ABC_result$upperCIaps$Commonality[1:3] / summary(depression_ABC_imputed)$r.squared
+boot.regOut_dep_ABC_result$combCIaps %>%
+  as_tibble(rownames = "IV") %>%
+  filter(IV %in% c("residual_change_hopelessness", "residual_change_agency", "pi_pfs_mean")) %>%
+  select(IV, R2, Commonality)
 
 # Project ABC, Anxiety
 
@@ -271,11 +270,11 @@ regOut_anx_ABC$APSRelatedMetrics
 
 boot.regOut_anx_ABC <- boot(cope_ca_data_imputed_ABC, boot.yhat, 1000, lmOut = anxiety_ABC_imputed, regrout0 = regOut_anx_ABC)
 boot.regOut_anx_ABC_result <- booteval.yhat(regOut_anx_ABC, boot.regOut_anx_ABC, bty = "perc")
-boot.regOut_anx_ABC_result$combCIaps
 
-regOut_anx_ABC$APSRelatedMetrics$` % Total`[1:3]
-boot.regOut_anx_ABC_result$lowerCIaps$Commonality[1:3] / summary(anxiety_ABC_imputed)$r.squared
-boot.regOut_anx_ABC_result$upperCIaps$Commonality[1:3] / summary(anxiety_ABC_imputed)$r.squared
+boot.regOut_anx_ABC_result$combCIaps %>%
+  as_tibble(rownames = "IV") %>%
+  filter(IV %in% c("residual_change_hopelessness", "residual_change_agency", "pi_pfs_mean")) %>%
+  select(IV, R2, Commonality)
 
 # Project ABC, Restrictive Eating
 
@@ -284,11 +283,11 @@ regOut_drs_ABC$APSRelatedMetrics
 
 boot.regOut_drs_ABC <- boot(cope_ca_data_imputed_ABC, boot.yhat, 1000, lmOut = drs_ABC_imputed, regrout0 = regOut_drs_ABC)
 boot.regOut_drs_ABC_result <- booteval.yhat(regOut_drs_ABC, boot.regOut_drs_ABC, bty = "perc")
-boot.regOut_drs_ABC_result$combCIaps
 
-regOut_drs_ABC$APSRelatedMetrics$` % Total`[1:3]
-boot.regOut_drs_ABC_result$lowerCIaps$Commonality[1:3] / summary(drs_ABC_imputed)$r.squared
-boot.regOut_drs_ABC_result$upperCIaps$Commonality[1:3] / summary(drs_ABC_imputed)$r.squared
+boot.regOut_drs_ABC_result$combCIaps %>%
+  as_tibble(rownames = "IV") %>%
+  filter(IV %in% c("residual_change_hopelessness", "residual_change_agency", "pi_pfs_mean")) %>%
+  select(IV, R2, Commonality)
 
 # Project ABC, COVID-19 Trauma
 
@@ -297,12 +296,11 @@ regOut_cts_ABC$APSRelatedMetrics
 
 boot.regOut_cts_ABC <- boot(cope_ca_data_imputed_ABC, boot.yhat, 1000, lmOut = cts_ABC_imputed, regrout0 = regOut_cts_ABC)
 boot.regOut_cts_ABC_result <- booteval.yhat(regOut_cts_ABC, boot.regOut_cts_ABC, bty = "perc")
-boot.regOut_cts_ABC_result$combCIaps
 
-regOut_cts_ABC$APSRelatedMetrics$` % Total`[1:3]
-boot.regOut_cts_ABC_result$lowerCIaps$Commonality[1:3] / summary(cts_ABC_imputed)$r.squared
-boot.regOut_cts_ABC_result$upperCIaps$Commonality[1:3] / summary(cts_ABC_imputed)$r.squared
-
+boot.regOut_cts_ABC_result$combCIaps %>%
+  as_tibble(rownames = "IV") %>%
+  filter(IV %in% c("residual_change_hopelessness", "residual_change_agency", "pi_pfs_mean")) %>%
+  select(IV, R2, Commonality)
 ```
 
 # Visualizing
