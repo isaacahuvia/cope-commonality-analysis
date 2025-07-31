@@ -20,10 +20,6 @@ library(forcats)
 if(!require(psych)){install.packages('psych')}
 library(psych)
 
-#Set working directory
-setwd("/Volumes/jslab/Commonality Analysis") #Arielle
-#setwd("Z:/Commonality Analysis") #Laura
-
 #Read in data
 cope_full_data <- readRDS("cleaned_cope_data_randomized.rds")
 ```
@@ -31,10 +27,12 @@ cope_full_data <- readRDS("cleaned_cope_data_randomized.rds")
 ```{r data cleaning}
 #Select necessary columns
 cope_ca_data <- cope_full_data %>% 
-  select(contains(c("b_dem", "b_bhs", "b_shs", "b_cdi", "b_gad", "b_cts_rs","b_drs_month", "b_pfs", "pi_bhs", "pi_shs", "f1_bhs", "f1_shs", "f1_cdi", "f1_gad", "f1_cts_rs", "f1_drs_month", "condition"))) %>%
+  select(contains(c("b_dem", "b_bhs", "b_shs", "b_cdi", "b_gad", "b_drs", "b_cts", "b_pfs", "pi_bhs", "pi_shs", "f1_bhs", "f1_shs", "f1_cdi", "f1_gad", "f1_drs", "f1_cts", "condition"))) %>%
 #Adding cdi sums (means already exist for all the other variables - which is what we need for our analyses!)
   mutate(b_cdi_sum = b_cdi_1 + b_cdi_2 + b_cdi_3 + b_cdi_4 + b_cdi_5 + b_cdi_6 + b_cdi_7 + b_cdi_8 + b_cdi_9 + b_cdi_10 + b_cdi_11 + b_cdi_12, 
          f1_cdi_sum = f1_cdi_1 + f1_cdi_2 + f1_cdi_3 + f1_cdi_4 + f1_cdi_5 + f1_cdi_6 + f1_cdi_7 + f1_cdi_8 + f1_cdi_9 + f1_cdi_10 + f1_cdi_11 + f1_cdi_12) %>% 
+#Redoing baseline agency mean due to error in original data (all items were included instead of the subscale)
+  mutate(b_shs_mean = (b_shs_1 + b_shs_3 + b_shs_5) / 3) %>% 
 #Confusing that the program feedback scale was labelled with the abbreviation for baseline rather than post-intervention, so changing it
   rename_with(~ gsub("^b_pfs", "pi_pfs", .), starts_with("b_pfs")) %>% 
 #Remove open-ended text variables (for demographics) because will not give missForest meaningful info
@@ -55,6 +53,10 @@ cope_ca_ssi_completers <- cope_ca_data %>%
   filter(condition == 1 | condition == 2,
          pi_dropout == 0)
 
+#Relevel condition variable now that control participants have been removed
+cope_ca_ssi_completers$condition <- factor(cope_ca_ssi_completers$condition,
+                                          levels = c("1", "2"))
+
 #Remove SSI completers without complete baseline data (we are not imputing these variables)
 cope_ca_ssi_completers <- cope_ca_ssi_completers %>%
   drop_na(b_cdi_sum, b_gad_mean, b_drs_month, b_cts_rs_mean)
@@ -70,14 +72,20 @@ cope_ca_ssi_completers <- cope_ca_ssi_completers %>%
   mutate(across(starts_with("b_dem"),
                 ~ fct_lump_min(., 10)))
 
-str(cope_ca_ssi_completers)
+#missForest also has trouble with factors that have levels with rare occurrences or incorperating factors with different numbers of levels at the same time. Since most of our factors are 2 levels and/or the factors with 3+ levels often have dichotomized versions (e.g., gender), we will identify and remove the factor variables that have levels other than 2.
+factors_not_two_levels <- names(Filter(function(x) is.factor(x) && nlevels(x) != 2, cope_ca_ssi_completers))
+factors_not_two_levels
+
+cope_ca_ssi_completers_2 <- cope_ca_ssi_completers %>%
+  select(-all_of(factors_not_two_levels))
 ```
 
 ```{r data imputation}
 set.seed(12345) #use the same seed number each time to make the code reproducible (the seed number is just the starting point used in the generation of a sequence of random numbers in the random forest)
 
-cope_ca_data_imputed <- missForest(cope_ca_ssi_completers)
-#NRMSE = 0.25. This is the error term for the continuous variables.
+#cope_ca_data_imputed <- missForest(cope_ca_ssi_completers_2)
+#cope_ca_data_imputed$OOBerror
+#NRMSE = 0.21. This is the error term for the continuous variables.
 #PFC = 0.04. This is the error term for the categorical variables.
 #We will run the analyses again with complete cases only (no imputation) as a robustness check to make sure there isn't a huge difference in results.
 ```
@@ -86,28 +94,17 @@ cope_ca_data_imputed <- missForest(cope_ca_ssi_completers)
 #Turn the imputed data into it's own object
 cope_ca_data_imputed <- as.data.frame(cope_ca_data_imputed$ximp)
 
-#Since PFS was not imputed but we need PFS completers for the analyses, look for people who skipped one or more PFS item
-missing_pfs <- cope_ca_data_imputed[, c("pi_pfs_1", "pi_pfs_2", "pi_pfs_3", "pi_pfs_4", "pi_pfs_5", "pi_pfs_6", "pi_pfs_7")]
-vis_miss(missing_pfs, show_perc_col = T, sort_miss = T)
-miss_var_summary(missing_pfs)
-#Looks like 1 participant did not answer item 2, so need to drop them
-cope_ca_data_imputed <- cope_ca_data_imputed %>%
-  drop_na(starts_with("pi_pfs"))
-#Now at #1379 observations
-
 #Export as .csv
-#write.csv(cope_ca_data_imputed,file='cope_ca_data_imputed.csv')
+write.csv(cope_ca_data_imputed,file='cope_ca_data_imputed.csv')
 ```
 
 ```{r create new data frame of complete cases (nonimputed) - for robustness check later}
-selected_columns <- c("b_bhs", "b_shs", "b_cdi", "b_gad", "b_cts_rs", "b_drs_month", "pi_pfs", "pi_bhs", "pi_shs", "f1_bhs", "f1_shs", "f1_cdi", "f1_gad", "f1_cts_rs", "f1_drs_month")
+selected_columns <- c("b_bhs", "b_shs", "b_cdi", "pi_pfs", "pi_bhs", "pi_shs", "f1_bhs", "f1_shs", "f1_cdi")
 
 cope_ca_data_nonimputed <- cope_ca_ssi_completers %>%
   drop_na(contains(selected_columns))
-#879 observations
+#885 observations
 
 #Export as .csv
-#write.csv(cope_ca_data_nonimputed,file='cope_ca_data_nonimputed.csv')
-
-#test Arielle
+#write.csv(cope_ca_data_nonimputed, file='cope_ca_data_nonimputed.csv')
 ```
