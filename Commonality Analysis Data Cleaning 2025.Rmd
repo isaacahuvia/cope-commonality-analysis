@@ -108,4 +108,6 @@ cope_ca_data_nonimputed <- cope_ca_ssi_completers %>%
 
 #Export as .csv
 #write.csv(cope_ca_data_nonimputed,file='cope_ca_data_nonimputed.csv')
+
+#test Arielle
 ```
