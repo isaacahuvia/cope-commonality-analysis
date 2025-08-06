@@ -5,20 +5,19 @@ date: "2023-08-25"
 output: html_document
 ---
 
+```{r versions documentation}
+#R version 4.4.0 (2024-04-24)
+#missForest version 1.5
+```
+
 ```{r setup}
 #Load required packages
 if(!require(tidyverse)){install.packages('tidyverse')}
 library(tidyverse)
 if(!require(missForest)){install.packages('missForest')}
 library(missForest)
-if(!require(corrplot)){install.packages('corrplot')}
-library(corrplot)
-if(!require(naniar)){install.packages('naniar')}
-library(naniar)
 if(!require(forcats)){install.packages('forcats')}
 library(forcats)
-if(!require(psych)){install.packages('psych')}
-library(psych)
 
 #Read in data
 cope_full_data <- readRDS("cleaned_cope_data_randomized.rds")
