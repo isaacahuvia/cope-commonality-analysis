@@ -123,6 +123,54 @@ print(boot.regOut_cdi_PP_result$combCIaps)
 print(boot.regOut_cdi_PP_result$combCIpm["b"])
 print(boot.regOut_cdi_PP_result$combCIapsDiff)
 
+# Now, need to get total effects for each IV individually
+
+# Hopelessness 
+
+# Define function to get R^2 
+rsq <- function(cope_ca_data_imputed_PP, bootstrap_rows) { 
+  model <- lm( 
+    formula = difference_score_cdi ~ difference_score_bhs, # Whatever the regression formula is 
+    data = cope_ca_data_imputed_PP[bootstrap_rows,] # This changes the rows of the dataset to whatever the rows are for that specific bootstrap iteration 
+  ) 
+  rsq <- summary(model)$r.squared 
+  return(rsq) 
+}
+# Point estimate 
+rsq(cope_ca_data_imputed_PP, 1:nrow(cope_ca_data_imputed_PP)) 
+# Bootstrap results 
+bootstrapped_results <- boot(data = cope_ca_data_imputed_PP, statistic = rsq, R = 1000) 
+# CI for R^2 
+boot.ci(bootstrapped_results, type = "perc") 
+
+# Agency 
+
+rsq <- function(cope_ca_data_imputed_PP, bootstrap_rows) { 
+  model <- lm( 
+    formula = difference_score_cdi ~ difference_score_shs,
+    data = cope_ca_data_imputed_PP[bootstrap_rows,] 
+  ) 
+  rsq <- summary(model)$r.squared 
+  return(rsq) 
+}
+rsq(cope_ca_data_imputed_PP, 1:nrow(cope_ca_data_imputed_PP)) 
+bootstrapped_results <- boot(data = cope_ca_data_imputed_PP, statistic = rsq, R = 1000) 
+boot.ci(bootstrapped_results, type = "perc") 
+
+# Acceptability
+
+rsq <- function(cope_ca_data_imputed_PP, bootstrap_rows) { 
+  model <- lm( 
+    formula = difference_score_cdi ~ pi_pfs_mean,
+    data = cope_ca_data_imputed_PP[bootstrap_rows,] 
+  ) 
+  rsq <- summary(model)$r.squared 
+  return(rsq) 
+}
+rsq(cope_ca_data_imputed_PP, 1:nrow(cope_ca_data_imputed_PP)) 
+bootstrapped_results <- boot(data = cope_ca_data_imputed_PP, statistic = rsq, R = 1000) 
+boot.ci(bootstrapped_results, type = "perc") 
+
 # Project ABC, Depression
 
 regOut_cdi_ABC <- calc.yhat(cdi_ABC_imputed)
@@ -133,6 +181,48 @@ boot.regOut_cdi_ABC_result <- booteval.yhat(regOut_cdi_ABC, boot.regOut_cdi_ABC,
 print(boot.regOut_cdi_ABC_result$combCIaps)
 print(boot.regOut_cdi_ABC_result$combCIpm["b"])
 print(boot.regOut_cdi_ABC_result$combCIapsDiff)
+
+# Hopelessness
+
+rsq <- function(cope_ca_data_imputed_ABC, bootstrap_rows) { 
+  model <- lm( 
+    formula = difference_score_cdi ~ difference_score_bhs,
+    data = cope_ca_data_imputed_ABC[bootstrap_rows,] 
+  ) 
+  rsq <- summary(model)$r.squared 
+  return(rsq) 
+}
+rsq(cope_ca_data_imputed_ABC, 1:nrow(cope_ca_data_imputed_ABC)) 
+bootstrapped_results <- boot(data = cope_ca_data_imputed_ABC, statistic = rsq, R = 1000) 
+boot.ci(bootstrapped_results, type = "perc") 
+
+# Agency 
+
+rsq <- function(cope_ca_data_imputed_ABC, bootstrap_rows) { 
+  model <- lm( 
+    formula = difference_score_cdi ~ difference_score_shs,
+    data = cope_ca_data_imputed_ABC[bootstrap_rows,] 
+  ) 
+  rsq <- summary(model)$r.squared 
+  return(rsq) 
+}
+rsq(cope_ca_data_imputed_ABC, 1:nrow(cope_ca_data_imputed_ABC)) 
+bootstrapped_results <- boot(data = cope_ca_data_imputed_ABC, statistic = rsq, R = 1000) 
+boot.ci(bootstrapped_results, type = "perc") 
+
+# Acceptability
+
+rsq <- function(cope_ca_data_imputed_ABC, bootstrap_rows) { 
+  model <- lm( 
+    formula = difference_score_cdi ~ pi_pfs_mean,
+    data = cope_ca_data_imputed_ABC[bootstrap_rows,] 
+  ) 
+  rsq <- summary(model)$r.squared 
+  return(rsq) 
+}
+rsq(cope_ca_data_imputed_ABC, 1:nrow(cope_ca_data_imputed_ABC)) 
+bootstrapped_results <- boot(data = cope_ca_data_imputed_ABC, statistic = rsq, R = 1000) 
+boot.ci(bootstrapped_results, type = "perc") 
 ```
 
 
@@ -224,6 +314,48 @@ print(boot.regOut_cdi_PP_result$combCIaps)
 print(boot.regOut_cdi_PP_result$combCIpm["b"])
 print(boot.regOut_cdi_PP_result$combCIapsDiff)
 
+# Hopelessness
+
+rsq <- function(cope_ca_data_nonimputed_PP, bootstrap_rows) { 
+  model <- lm( 
+    formula = difference_score_cdi ~ difference_score_bhs,
+    data = cope_ca_data_nonimputed_PP[bootstrap_rows,] 
+  ) 
+  rsq <- summary(model)$r.squared 
+  return(rsq) 
+}
+rsq(cope_ca_data_nonimputed_PP, 1:nrow(cope_ca_data_nonimputed_PP)) 
+bootstrapped_results <- boot(data = cope_ca_data_nonimputed_PP, statistic = rsq, R = 1000) 
+boot.ci(bootstrapped_results, type = "perc") 
+
+# Agency 
+
+rsq <- function(cope_ca_data_nonimputed_PP, bootstrap_rows) { 
+  model <- lm( 
+    formula = difference_score_cdi ~ difference_score_shs,
+    data = cope_ca_data_nonimputed_PP[bootstrap_rows,] 
+  ) 
+  rsq <- summary(model)$r.squared 
+  return(rsq) 
+}
+rsq(cope_ca_data_nonimputed_PP, 1:nrow(cope_ca_data_nonimputed_PP)) 
+bootstrapped_results <- boot(data = cope_ca_data_nonimputed_PP, statistic = rsq, R = 1000) 
+boot.ci(bootstrapped_results, type = "perc") 
+
+# Acceptability
+
+rsq <- function(cope_ca_data_nonimputed_PP, bootstrap_rows) { 
+  model <- lm( 
+    formula = difference_score_cdi ~ pi_pfs_mean,
+    data = cope_ca_data_nonimputed_PP[bootstrap_rows,] 
+  ) 
+  rsq <- summary(model)$r.squared 
+  return(rsq) 
+}
+rsq(cope_ca_data_nonimputed_PP, 1:nrow(cope_ca_data_nonimputed_PP)) 
+bootstrapped_results <- boot(data = cope_ca_data_nonimputed_PP, statistic = rsq, R = 1000) 
+boot.ci(bootstrapped_results, type = "perc") 
+
 # Project ABC, Depression
 
 regOut_cdi_ABC <- calc.yhat(cdi_ABC_nonimputed)
@@ -234,6 +366,48 @@ boot.regOut_cdi_ABC_result <- booteval.yhat(regOut_cdi_ABC, boot.regOut_cdi_ABC,
 print(boot.regOut_cdi_ABC_result$combCIaps)
 print(boot.regOut_cdi_ABC_result$combCIpm["b"])
 print(boot.regOut_cdi_ABC_result$combCIapsDiff)
+
+# Hopelessness
+
+rsq <- function(cope_ca_data_nonimputed_ABC, bootstrap_rows) { 
+  model <- lm( 
+    formula = difference_score_cdi ~ difference_score_bhs,
+    data = cope_ca_data_nonimputed_ABC[bootstrap_rows,] 
+  ) 
+  rsq <- summary(model)$r.squared 
+  return(rsq) 
+}
+rsq(cope_ca_data_nonimputed_ABC, 1:nrow(cope_ca_data_nonimputed_ABC)) 
+bootstrapped_results <- boot(data = cope_ca_data_nonimputed_ABC, statistic = rsq, R = 1000) 
+boot.ci(bootstrapped_results, type = "perc") 
+
+# Agency 
+
+rsq <- function(cope_ca_data_nonimputed_ABC, bootstrap_rows) { 
+  model <- lm( 
+    formula = difference_score_cdi ~ difference_score_shs,
+    data = cope_ca_data_nonimputed_ABC[bootstrap_rows,] 
+  ) 
+  rsq <- summary(model)$r.squared 
+  return(rsq) 
+}
+rsq(cope_ca_data_nonimputed_ABC, 1:nrow(cope_ca_data_nonimputed_ABC)) 
+bootstrapped_results <- boot(data = cope_ca_data_nonimputed_ABC, statistic = rsq, R = 1000) 
+boot.ci(bootstrapped_results, type = "perc") 
+
+# Acceptability
+
+rsq <- function(cope_ca_data_nonimputed_ABC, bootstrap_rows) { 
+  model <- lm( 
+    formula = difference_score_cdi ~ pi_pfs_mean,
+    data = cope_ca_data_nonimputed_ABC[bootstrap_rows,] 
+  ) 
+  rsq <- summary(model)$r.squared 
+  return(rsq) 
+}
+rsq(cope_ca_data_nonimputed_ABC, 1:nrow(cope_ca_data_nonimputed_ABC)) 
+bootstrapped_results <- boot(data = cope_ca_data_nonimputed_ABC, statistic = rsq, R = 1000) 
+boot.ci(bootstrapped_results, type = "perc") 
 ```
 
 
