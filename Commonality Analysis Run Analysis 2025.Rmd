@@ -1,9 +1,20 @@
 ---
 title: "Commonality Analysis Code_2"
 author: "Laura Jans and Arielle Smith"
-date: "2023-07-25"
+date: "2025-08-07"
 output: html_document
 ---
+
+```{r versions documentation}
+#R version 4.4.0 (2024-04-24)
+#tidyverse version 2.0.0
+#yhat version 2.0-4
+#boot version 1.3-3.0
+#car version 3.0-5
+#lmtest version 0.9-4.0
+#olsrr version 0.6.0
+```
+
 
 # Loading Cleaned Data
 
@@ -14,29 +25,11 @@ output: html_document
 if(!require(tidyverse)){install.packages('tidyverse')}
 library(tidyverse)
 
-if(!require(psych)){install.packages('psych')}
-library(psych)
-
-if(!require(Hmisc)){install.packages('Hmisc')}
-library(Hmisc)
-
 if(!require(yhat)){install.packages('yhat')}
 library(yhat)
 
 if(!require(boot)){install.packages('boot')}
 library(boot)
-
-if(!require(VennDiagram)){install.packages('VennDiagram')}
-library(VennDiagram)
-
-if(!require(gsheet)){install.packages('gsheet')}
-library('gsheet')
-
-if(!require(ggrepel)){install.packages('ggrepel')}
-library('ggrepel')
-
-if(!require(stargazer)){install.packages('stargazer')}
-library(stargazer)
 
 if(!require(car)){install.packages('car')}
 library(car)
