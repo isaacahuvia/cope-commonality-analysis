@@ -3,6 +3,8 @@ title: "Commonality Analysis Code_2"
 author: "Laura Jans and Arielle Smith"
 date: "2025-08-07"
 output: html_document
+editor_options: 
+  chunk_output_type: inline
 ---
 
 ```{r versions documentation}
@@ -118,10 +120,9 @@ regOut_cdi_PP <- calc.yhat(cdi_PP_imputed)
 # Bootstrap 1000 times to get CIs
 
 boot.regOut_cdi_PP <-boot(cope_ca_data_imputed_PP, boot.yhat, 1000, lmOut = cdi_PP_imputed, regrout0 = regOut_cdi_PP)
-boot.regOut_cdi_PP_result <- booteval.yhat(regOut_cdi_PP, boot.regOut_cdi_PP, bty="perc")
+boot.regOut_cdi_PP_result <- booteval.yhat(regOut_cdi_PP, boot.regOut_cdi_PP, bty="perc", prec = 6)
 print(boot.regOut_cdi_PP_result$combCIaps)
 print(boot.regOut_cdi_PP_result$combCIpm["b"])
-print(boot.regOut_cdi_PP_result$combCIapsDiff)
 
 # Now, need to get total effects for each IV individually
 
@@ -180,7 +181,6 @@ boot.regOut_cdi_ABC <- boot(cope_ca_data_imputed_ABC, boot.yhat, 1000, lmOut = c
 boot.regOut_cdi_ABC_result <- booteval.yhat(regOut_cdi_ABC, boot.regOut_cdi_ABC, bty = "perc")
 print(boot.regOut_cdi_ABC_result$combCIaps)
 print(boot.regOut_cdi_ABC_result$combCIpm["b"])
-print(boot.regOut_cdi_ABC_result$combCIapsDiff)
 
 # Hopelessness
 
@@ -309,10 +309,9 @@ regOut_cdi_PP <- calc.yhat(cdi_PP_nonimputed)
 # Bootstrap 1000 times to get CIs
 
 boot.regOut_cdi_PP <-boot(cope_ca_data_nonimputed_PP, boot.yhat, 1000, lmOut = cdi_PP_nonimputed, regrout0 = regOut_cdi_PP)
-boot.regOut_cdi_PP_result <- booteval.yhat(regOut_cdi_PP, boot.regOut_cdi_PP, bty="perc")
+boot.regOut_cdi_PP_result <- booteval.yhat(regOut_cdi_PP, boot.regOut_cdi_PP, bty="perc", prec = 6)
 print(boot.regOut_cdi_PP_result$combCIaps)
 print(boot.regOut_cdi_PP_result$combCIpm["b"])
-print(boot.regOut_cdi_PP_result$combCIapsDiff)
 
 # Hopelessness
 
@@ -365,7 +364,6 @@ boot.regOut_cdi_ABC <- boot(cope_ca_data_nonimputed_ABC, boot.yhat, 1000, lmOut 
 boot.regOut_cdi_ABC_result <- booteval.yhat(regOut_cdi_ABC, boot.regOut_cdi_ABC, bty = "perc")
 print(boot.regOut_cdi_ABC_result$combCIaps)
 print(boot.regOut_cdi_ABC_result$combCIpm["b"])
-print(boot.regOut_cdi_ABC_result$combCIapsDiff)
 
 # Hopelessness
 
