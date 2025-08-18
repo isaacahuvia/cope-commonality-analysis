@@ -1,7 +1,7 @@
 ---
 title: "Commonality Analysis Code_2"
 author: "Laura Jans and Arielle Smith"
-date: "2025-08-07"
+date: "2025-08-17"
 output: html_document
 editor_options: 
   chunk_output_type: inline
@@ -17,30 +17,21 @@ editor_options:
 #olsrr version 0.6.0
 ```
 
+```{r groundhog setup}
+#install.packages("groundhog")
+#library(groundhog)
+#groundhog_date <- "2025-04-10"
+#meta.groundhog(groundhog_date)
+
+
+#pkgs <- c("tidyverse", "yhat", "boot", "car", "lmtest", "olsrr")
+#groundhog.library(pkgs, groundhog_date)
+```
+
 
 # Loading Cleaned Data
 
 ```{r setup, echo=TRUE, message=FALSE, warning=FALSE}
-
-#Load required packages
-
-if(!require(tidyverse)){install.packages('tidyverse')}
-library(tidyverse)
-
-if(!require(yhat)){install.packages('yhat')}
-library(yhat)
-
-if(!require(boot)){install.packages('boot')}
-library(boot)
-
-if(!require(car)){install.packages('car')}
-library(car)
-
-if(!require(lmtest)){install.packages('lmtest')}
-library(lmtest)
-
-if(!require(olsrr)){install.packages('olsrr')}
-library(olsrr)
 
 #Read in data from data cleaning and pre-processing code (to avoid re-running data prep every time)
 
@@ -361,7 +352,7 @@ regOut_cdi_ABC <- calc.yhat(cdi_ABC_nonimputed)
 #regOut_dep_ABC$APSRelatedMetrics
 
 boot.regOut_cdi_ABC <- boot(cope_ca_data_nonimputed_ABC, boot.yhat, 1000, lmOut = cdi_ABC_nonimputed, regrout0 = regOut_cdi_ABC)
-boot.regOut_cdi_ABC_result <- booteval.yhat(regOut_cdi_ABC, boot.regOut_cdi_ABC, bty = "perc")
+boot.regOut_cdi_ABC_result <- booteval.yhat(regOut_cdi_ABC, boot.regOut_cdi_ABC, bty = "perc", prec = 6)
 print(boot.regOut_cdi_ABC_result$combCIaps)
 print(boot.regOut_cdi_ABC_result$combCIpm["b"])
 
@@ -450,3 +441,9 @@ ols_test_normality(cdi_ABC_nonimputed)
 # the only model that meets this assumption is anxiety_PP_nonimputed
 ```
 
+
+```{r pull session info}
+sink(file = "2025.08.17_sessionInfo_for_analysis_script.txt")
+sessionInfo()
+sink()
+```

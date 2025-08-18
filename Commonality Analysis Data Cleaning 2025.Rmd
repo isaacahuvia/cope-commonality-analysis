@@ -1,7 +1,7 @@
 ---
 title: "COPE Commonality Analysis"
 author: "Arielle Smith and Laura Jans"
-date: "2025-08-07"
+date: "2025-08-17"
 output: html_document
 ---
 
@@ -74,18 +74,18 @@ cope_ca_ssi_completers <- cope_ca_ssi_completers %>%
                 ~ fct_lump_min(., 10)))
 
 #missForest also has trouble with factors that have levels with rare occurrences or incorperating factors with different numbers of levels at the same time. Since most of our factors are 2 levels and/or the factors with 3+ levels often have dichotomized versions (e.g., gender), we will identify and remove the factor variables that have levels other than 2.
-factors_not_two_levels <- names(Filter(function(x) is.factor(x) && nlevels(x) != 2, cope_ca_ssi_completers))
-factors_not_two_levels
+#factors_not_two_levels <- names(Filter(function(x) is.factor(x) && nlevels(x) != 2, cope_ca_ssi_completers))
+#factors_not_two_levels
 
-cope_ca_ssi_completers_2 <- cope_ca_ssi_completers %>%
-  select(-all_of(factors_not_two_levels))
+#cope_ca_ssi_completers_2 <- cope_ca_ssi_completers %>%
+#select(-all_of(factors_not_two_levels))
 ```
 
 ```{r data imputation}
 set.seed(12345) #use the same seed number each time to make the code reproducible (the seed number is just the starting point used in the generation of a sequence of random numbers in the random forest)
 
-#cope_ca_data_imputed <- missForest(cope_ca_ssi_completers_2)
-#cope_ca_data_imputed$OOBerror
+cope_ca_data_imputed <- missForest(cope_ca_ssi_completers)
+cope_ca_data_imputed$OOBerror
 #NRMSE = 0.21. This is the error term for the continuous variables.
 #PFC = 0.04. This is the error term for the categorical variables.
 #We will run the analyses again with complete cases only (no imputation) as a robustness check to make sure there isn't a huge difference in results.
@@ -93,19 +93,26 @@ set.seed(12345) #use the same seed number each time to make the code reproducibl
 
 ```{r merge imputed data}
 #Turn the imputed data into it's own object
-#cope_ca_data_imputed <- as.data.frame(cope_ca_data_imputed$ximp)
+cope_ca_data_imputed <- as.data.frame(cope_ca_data_imputed$ximp)
 
 #Export as .csv
-#write.csv(cope_ca_data_imputed,file='cope_ca_data_imputed.csv')
+write.csv(cope_ca_data_imputed,file='cope_ca_data_imputed.csv')
 ```
 
 ```{r create new data frame of complete cases (nonimputed) - for robustness check later}
-#selected_columns <- c("b_bhs", "b_shs", "b_cdi", "pi_pfs", "pi_bhs", "pi_shs", "f1_bhs", "f1_shs", "f1_cdi")
+selected_columns <- c("b_bhs", "b_shs", "b_cdi", "pi_pfs", "pi_bhs", "pi_shs", "f1_bhs", "f1_shs", "f1_cdi")
 
-#cope_ca_data_nonimputed <- cope_ca_ssi_completers %>%
-  #drop_na(contains(selected_columns))
+cope_ca_data_nonimputed <- cope_ca_ssi_completers %>%
+  drop_na(contains(selected_columns))
 #885 observations
 
 #Export as .csv
-#write.csv(cope_ca_data_nonimputed, file='cope_ca_data_nonimputed.csv')
+write.csv(cope_ca_data_nonimputed, file='cope_ca_data_nonimputed.csv')
+```
+
+```{r pull session info}
+sink(file = "2025.08.17_sessionInfo_for_cleaning_script.txt")
+sessionInfo()
+sink()
+#Note - we ran into an error on macOS on 8/14/25 when using the settings specified in the "2025.08.14_sessionInfo_for_cleaning_script.txt" file. missForest is no longer running unless there are exactly two factors (we get an incorrect cutoff specified error)
 ```
