@@ -1,21 +1,11 @@
 ---
 title: "Commonality Analysis Code_2"
 author: "Laura Jans and Arielle Smith"
-date: "2025-08-17"
+date: "2025-08-21"
 output: html_document
 editor_options: 
   chunk_output_type: inline
 ---
-
-```{r versions documentation}
-#R version 4.4.0 (2024-04-24)
-#tidyverse version 2.0.0
-#yhat version 2.0-4
-#boot version 1.3-3.0
-#car version 3.0-5
-#lmtest version 0.9-4.0
-#olsrr version 0.6.0
-```
 
 # Loading Cleaned Data
 
@@ -26,8 +16,8 @@ library(groundhog)
 groundhog_date <- "2025-04-10"
 meta.groundhog(groundhog_date)
 
-pkgs <- c("tidyverse", "yhat", "boot", "car", "lmtest", "olsrr")
-groundhog.library(pkgs, groundhog_date)
+pkgs_analysis <- c("tidyverse", "yhat", "boot", "car", "lmtest", "olsrr")
+groundhog.library(pkgs_analysis, groundhog_date)
 
 #Source custom functions
 source("0_define_functions.R")
@@ -99,6 +89,7 @@ regOut_cdi_PP <- calc.yhat(cdi_PP_nonimputed, prec = 6)
 
 # Bootstrap 1000 times to get CIs
 
+set.seed(6804275)
 boot.regOut_cdi_PP <-boot(cope_ca_data_nonimputed_PP, boot.yhat.prec, 1000, lmOut = cdi_PP_nonimputed, regrout0 = regOut_cdi_PP, prec = 6)
 boot.regOut_cdi_PP_result <- booteval.yhat(regOut_cdi_PP, boot.regOut_cdi_PP, bty="perc", prec = 6)
 print(boot.regOut_cdi_PP_result$combCIaps)
@@ -113,6 +104,7 @@ summary(lm(difference_score_cdi ~ pi_pfs_mean, data = cope_ca_data_nonimputed_PP
 
 regOut_cdi_ABC <- calc.yhat(cdi_ABC_nonimputed, prec = 6)
 
+set.seed(6804275)
 boot.regOut_cdi_ABC <- boot(cope_ca_data_nonimputed_ABC, boot.yhat.prec, 1000, lmOut = cdi_ABC_nonimputed, regrout0 = regOut_cdi_ABC, prec = 6)
 boot.regOut_cdi_ABC_result <- booteval.yhat(regOut_cdi_ABC, boot.regOut_cdi_ABC, bty = "perc", prec = 6)
 print(boot.regOut_cdi_ABC_result$combCIaps)
@@ -166,7 +158,7 @@ ols_test_normality(cdi_ABC_nonimputed)
 
 
 ```{r pull session info}
-sink(file = "2025.08.17_sessionInfo_for_analysis_script.txt")
+sink(file = "2025.08.21_sessionInfo_for_analysis_script.txt")
 sessionInfo()
 sink()
 ```
