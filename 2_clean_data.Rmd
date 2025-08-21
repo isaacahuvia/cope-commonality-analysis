@@ -1,25 +1,19 @@
 ---
 title: "COPE Commonality Analysis"
 author: "Arielle Smith and Laura Jans"
-date: "2025-08-17"
+date: "2025-08-21"
 output: html_document
 ---
 
-```{r versions documentation}
-#R version 4.4.0 (2024-04-24)
-#tidyverse version 2.0.0
-#missForest version 1.5
-#forcats version 1.0.0
-```
-
 ```{r setup}
 #Load required packages
-if(!require(tidyverse)){install.packages('tidyverse')}
-library(tidyverse)
-if(!require(missForest)){install.packages('missForest')}
-library(missForest)
-if(!require(forcats)){install.packages('forcats')}
-library(forcats)
+
+library(groundhog)
+groundhog_date <- "2025-04-10"
+meta.groundhog(groundhog_date)
+
+pkgs_cleaning <- c("tidyverse", "missForest", "forcats")
+groundhog.library(pkgs_cleaning, groundhog_date)
 
 #Read in data
 cope_full_data <- readRDS("cleaned_cope_data_randomized.rds")
@@ -73,7 +67,7 @@ cope_ca_ssi_completers <- cope_ca_ssi_completers %>%
   mutate(across(starts_with("b_dem"),
                 ~ fct_lump_min(., 10)))
 
-#missForest also has trouble with factors that have levels with rare occurrences or incorperating factors with different numbers of levels at the same time. Since most of our factors are 2 levels and/or the factors with 3+ levels often have dichotomized versions (e.g., gender), we will identify and remove the factor variables that have levels other than 2.
+#8/14/25: missForest also has trouble with factors that have levels with rare occurrences or incorperating factors with different numbers of levels at the same time. Since most of our factors are 2 levels and/or the factors with 3+ levels often have dichotomized versions (e.g., gender), we will identify and remove the factor variables that have levels other than 2.
 #factors_not_two_levels <- names(Filter(function(x) is.factor(x) && nlevels(x) != 2, cope_ca_ssi_completers))
 #factors_not_two_levels
 
@@ -111,8 +105,8 @@ write.csv(cope_ca_data_nonimputed, file='cope_ca_data_nonimputed.csv')
 ```
 
 ```{r pull session info}
-sink(file = "2025.08.17_sessionInfo_for_cleaning_script.txt")
+sink(file = "2025.08.21_sessionInfo_for_cleaning_script.txt")
 sessionInfo()
 sink()
-#Note - we ran into an error on macOS on 8/14/25 when using the settings specified in the "2025.08.14_sessionInfo_for_cleaning_script.txt" file. missForest is no longer running unless there are exactly two factors (we get an incorrect cutoff specified error)
+#Note - we ran into an error on macOS on 8/14/25 when using the settings specified in the "2025.08.14_sessionInfo_for_cleaning_script.txt" file. missForest was not running unless there are exactly two factors (we get an incorrect cutoff specified error). As of 8/21/25, this appears to be an operating systems issue because it only occured on Mac OS.
 ```
