@@ -99,7 +99,7 @@ regOut_cdi_PP <- calc.yhat(cdi_PP_nonimputed, prec = 6)
 
 # Bootstrap 1000 times to get CIs
 
-boot.regOut_cdi_PP <-boot(cope_ca_data_nonimputed_PP, boot.yhat.prec6, 1000, lmOut = cdi_PP_nonimputed, regrout0 = regOut_cdi_PP)
+boot.regOut_cdi_PP <-boot(cope_ca_data_nonimputed_PP, boot.yhat.prec, 1000, lmOut = cdi_PP_nonimputed, regrout0 = regOut_cdi_PP, prec = 6)
 boot.regOut_cdi_PP_result <- booteval.yhat(regOut_cdi_PP, boot.regOut_cdi_PP, bty="perc", prec = 6)
 print(boot.regOut_cdi_PP_result$combCIaps)
 print(boot.regOut_cdi_PP_result$combCIpm["b"])
@@ -113,7 +113,7 @@ summary(lm(difference_score_cdi ~ pi_pfs_mean, data = cope_ca_data_nonimputed_PP
 
 regOut_cdi_ABC <- calc.yhat(cdi_ABC_nonimputed, prec = 6)
 
-boot.regOut_cdi_ABC <- boot(cope_ca_data_nonimputed_ABC, boot.yhat.prec6, 1000, lmOut = cdi_ABC_nonimputed, regrout0 = regOut_cdi_ABC)
+boot.regOut_cdi_ABC <- boot(cope_ca_data_nonimputed_ABC, boot.yhat.prec, 1000, lmOut = cdi_ABC_nonimputed, regrout0 = regOut_cdi_ABC, prec = 6)
 boot.regOut_cdi_ABC_result <- booteval.yhat(regOut_cdi_ABC, boot.regOut_cdi_ABC, bty = "perc", prec = 6)
 print(boot.regOut_cdi_ABC_result$combCIaps)
 print(boot.regOut_cdi_ABC_result$combCIpm["b"])
