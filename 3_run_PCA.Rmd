@@ -14,7 +14,7 @@ library(groundhog)
 groundhog_date <- "2025-04-10"
 meta.groundhog(groundhog_date)
 
-pkgs_pca <- "corrplot"
+pkgs_pca <- c("tidyverse", "corrplot")
 groundhog.library(pkgs_pca, groundhog_date)
 
 #Read in data
