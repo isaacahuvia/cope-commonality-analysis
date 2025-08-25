@@ -1,7 +1,7 @@
 ---
 title: "COPE Commonality Analysis"
 author: "Arielle Smith and Laura Jans"
-date: "2025-08-21"
+date: "2025-08-25"
 output: html_document
 ---
 
@@ -55,45 +55,50 @@ cope_ca_ssi_completers$condition <- factor(cope_ca_ssi_completers$condition,
 #Remove SSI completers without complete baseline data (we are not imputing these variables)
 cope_ca_ssi_completers <- cope_ca_ssi_completers %>%
   drop_na(b_cdi_sum, b_gad_mean, b_drs_month, b_cts_rs_mean)
+```
 
-#Change numeric-coded and integer-coded categorical variables into factors and make cope_ca_ssi_completers a data.frame for missForest to work
-cope_ca_ssi_completers <- as.data.frame(cope_ca_ssi_completers) %>% 
-  mutate(across(c(pi_dropout, b_drs_month, f1_drs_month, starts_with(c("b_dem_gender", "b_dem_sex", "b_dem_rom", "b_dem_race"))), factor))
+```{r data imputation}
+#8/14/25: We originally planned to impute missing data using "missForest". We then ran initial analyses 
+#using the resulting imputed data and found similar results as we did when we reran analyses on complete 
+#cases. Given limitations of "missForest()", we ultimately decided not to use it (and used complete cases 
+#instead). Thus, the following code related to "missForest" is commented out.
 
-#Since missForest can only work with categorical variables with a maximum of 53 levels, need to lump together factors. Decided to lump those with less than 10 responses.
-str(cope_ca_ssi_completers)
+#Change numeric-coded and integer-coded categorical variables into factors and make cope_ca_ssi_completers 
+#a data.frame for "missForest" to work
+#cope_ca_ssi_completers <- as.data.frame(cope_ca_ssi_completers) %>% 
+#  mutate(across(c(pi_dropout, b_drs_month, f1_drs_month, 
+#                  starts_with(c("b_dem_gender", "b_dem_sex", "b_dem_rom", "b_dem_race"))), factor))
 
-cope_ca_ssi_completers <- cope_ca_ssi_completers %>%
-  mutate(across(starts_with("b_dem"),
-                ~ fct_lump_min(., 10)))
+#Since "missForest" can only work with categorical variables with a maximum of 53 levels, need to lump 
+#together factors. Decided to lump those with less than 10 responses.
+#cope_ca_ssi_completers <- cope_ca_ssi_completers %>%
+#  mutate(across(starts_with("b_dem"),
+#                ~ fct_lump_min(., 10)))
 
-#8/14/25: missForest also has trouble with factors that have levels with rare occurrences or incorperating factors with different numbers of levels at the same time. Since most of our factors are 2 levels and/or the factors with 3+ levels often have dichotomized versions (e.g., gender), we will identify and remove the factor variables that have levels other than 2.
+#When running "missForest()" on 8/14/25 on macOS (see "2025.08.17_sessionInfo_for_cleaning_script.txt"),
+#we got an "incorrect cutoff specified" error. Although we could not reproduce this error on Windows 11, 
+#we resolved it on macOS using the code below, which removes factor variables with levels other than 2.
 #factors_not_two_levels <- names(Filter(function(x) is.factor(x) && nlevels(x) != 2, cope_ca_ssi_completers))
 #factors_not_two_levels
 
 #cope_ca_ssi_completers_2 <- cope_ca_ssi_completers %>%
-#select(-all_of(factors_not_two_levels))
-```
+#  select(-all_of(factors_not_two_levels))
 
-```{r data imputation}
-set.seed(12345) #use the same seed number each time to make the code reproducible (the seed number is just the starting point used in the generation of a sequence of random numbers in the random forest)
+#set.seed(12345) #For reproducibility
+#cope_ca_data_imputed <- missForest(cope_ca_ssi_completers_2)
 
-cope_ca_data_imputed <- missForest(cope_ca_ssi_completers)
-cope_ca_data_imputed$OOBerror
+#cope_ca_data_imputed$OOBerror
 #NRMSE = 0.21. This is the error term for the continuous variables.
 #PFC = 0.04. This is the error term for the categorical variables.
-#We will run the analyses again with complete cases only (no imputation) as a robustness check to make sure there isn't a huge difference in results.
-```
 
-```{r merge imputed data}
-#Turn the imputed data into it's own object
-cope_ca_data_imputed <- as.data.frame(cope_ca_data_imputed$ximp)
+#Turn the imputed data into its own object
+#cope_ca_data_imputed <- as.data.frame(cope_ca_data_imputed$ximp)
 
 #Export as .csv
-write.csv(cope_ca_data_imputed,file='cope_ca_data_imputed.csv')
+#write.csv(cope_ca_data_imputed, file='cope_ca_data_imputed.csv')
 ```
 
-```{r create new data frame of complete cases (nonimputed) - for robustness check later}
+```{r create new data frame of complete cases}
 selected_columns <- c("b_bhs", "b_shs", "b_cdi", "pi_pfs", "pi_bhs", "pi_shs", "f1_bhs", "f1_shs", "f1_cdi")
 
 cope_ca_data_nonimputed <- cope_ca_ssi_completers %>%
@@ -105,8 +110,7 @@ write.csv(cope_ca_data_nonimputed, file='cope_ca_data_nonimputed.csv')
 ```
 
 ```{r pull session info}
-sink(file = "2025.08.21_sessionInfo_for_cleaning_script.txt")
+sink(file = "2025.08.25_sessionInfo_for_cleaning_script.txt")
 sessionInfo()
 sink()
-#Note - we ran into an error on macOS on 8/14/25 when using the settings specified in the "2025.08.14_sessionInfo_for_cleaning_script.txt" file. missForest was not running unless there are exactly two factors (we get an incorrect cutoff specified error). As of 8/21/25, this appears to be an operating systems issue because it only occured on Mac OS.
 ```
