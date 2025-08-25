@@ -1,0 +1,54 @@
+---
+title: "PCA Output"
+author: "Laura Jans and Arielle Smith"
+date: "2025-08-25"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r set up}
+#Load required packages
+
+library(groundhog)
+groundhog_date <- "2025-04-10"
+meta.groundhog(groundhog_date)
+
+pkgs_pca <- "corrplot"
+groundhog.library(pkgs_pca, groundhog_date)
+
+#Read in data
+cope_ca_data_nonimputed <- read.csv("cope_ca_data_nonimputed.csv")
+```
+
+
+```{r PFS correlation matrix}
+#For the nonimputed dataset
+pfs_nonimputed <- cope_ca_data_nonimputed %>% 
+  select(pi_pfs_1, pi_pfs_2, pi_pfs_3, pi_pfs_4, pi_pfs_5, pi_pfs_6, pi_pfs_7)
+pfs_nonimputed_cor <- cor(pfs_nonimputed)
+pfs_nonimputed_cor
+pfs_nonimputed_cor_plot <- corrplot(pfs_nonimputed_cor)
+
+#We pre-registered we would use the mean PFS scores in the regression models if correlations between items are >0.7. They are surprisingly <0.7, so it looks like we'll be doing a principal component analysis.
+```
+
+```{r principal component analysis}
+#We probably only want one component, so starting with nfactors = 1
+pca1 <- psych::principal(pfs_nonimputed, nfactors = 1, rotate = "none")
+pca1
+#SS loadings    3.28
+#Proportion Var 0.47
+cope_ca_data_nonimputed$PC1 <- pca1$scores
+
+#Seeing if more components results in way more variance being explained, so playing with nfactors = 7 (number of PFS items)
+pca2 <- psych::principal(pfs_nonimputed, nfactors = 7, rotate = "none")
+pca2
+plot(pca2$values, type="b")
+#Inflection point of the scree plot is the second component, so probably does not make sense to have more than one component
+
+#Making sure the correlation between PFS mean scores and PC1 scores look good:
+cor(cope_ca_data_nonimputed$PC1, cope_ca_data_nonimputed$pi_pfs_mean)
+#r=0.9993394
+#Since the correlation is sooooo high, we will just use PFS mean scores afterall
+```

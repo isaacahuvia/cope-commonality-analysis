@@ -1,7 +1,7 @@
 ---
 title: "Commonality Analysis Code_2"
 author: "Laura Jans and Arielle Smith"
-date: "2025-08-21"
+date: "2025-08-25"
 output: html_document
 editor_options: 
   chunk_output_type: inline
@@ -141,7 +141,7 @@ plot(cdi_ABC_nonimputed, 3)
 ## original Breusch-Pagan test
 ncvTest(cdi_PP_nonimputed)
 ncvTest(cdi_ABC_nonimputed)
-# Half met the assumption. These models did not: drs_PP_nonimputed, cdi_ABC_nonimputed, anxiety_ABC_nonimputed, cts_ABC_nonimputed
+#cdi_ABC_nonimputed did not meet assumptions
 ## studentized Breusch-Pagan test
 bptest(cdi_PP_nonimputed)
 bptest(cdi_ABC_nonimputed)
@@ -153,12 +153,12 @@ ols_plot_resid_qq(cdi_ABC_nonimputed)
 # use Kolmogorov-Smirnov test
 ols_test_normality(cdi_PP_nonimputed)
 ols_test_normality(cdi_ABC_nonimputed)
-# the only model that meets this assumption is anxiety_PP_nonimputed
+#met for all models
 ```
 
 
 ```{r pull session info}
-sink(file = "2025.08.21_sessionInfo_for_analysis_script.txt")
+sink(file = "2025.08.25_sessionInfo_for_analysis_script.txt")
 sessionInfo()
 sink()
 ```
